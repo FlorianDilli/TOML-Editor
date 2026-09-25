@@ -155,25 +155,25 @@
     .brand-logo {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       text-decoration: none;
       color: var(--text-dark);
       font-weight: 800;
-      font-size: 1.18rem;
+      font-size: 1.45rem;
       letter-spacing: -0.5px;
       flex-shrink: 0;
     }
 
     @media (min-width: 768px) {
       .brand-logo {
-        font-size: 1.28rem;
-        gap: 9px;
+        font-size: 1.6rem;
+        gap: 11px;
       }
     }
 
     .logo-icon {
-      width: 27px;
-      height: 27.5px;
+      width: 34px;
+      height: 34.6px;
       display: block;
       flex-shrink: 0;
       border-radius: 6px;
@@ -181,8 +181,8 @@
 
     @media (min-width: 768px) {
       .logo-icon {
-        width: 30px;
-        height: 30.6px;
+        width: 38px;
+        height: 38.7px;
       }
     }
 
@@ -319,21 +319,15 @@
 
     .hero-actions {
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
       width: 100%;
     }
 
     @media (max-width: 480px) {
       .hero-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
         gap: 6px;
-      }
-      .hero-actions .btn:first-child {
-        grid-column: 1 / -1;
       }
       .hero-actions .btn {
         width: 100%;
@@ -559,7 +553,7 @@
 
     .tab-group {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 3px;
       background: #e6e8e2;
       padding: 3px;
@@ -782,177 +776,6 @@
       align-items: center;
       gap: 3px;
     }
-
-    /* TREE INSPECTOR STYLES */
-    .tree-inspector-wrapper {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      background: #f7f8f5;
-      overflow: hidden;
-      width: 100%;
-      min-height: 0;
-    }
-
-    .tree-header-controls {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-light);
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      flex-shrink: 0;
-      z-index: 5;
-    }
-
-    .tree-search-wrapper {
-      position: relative;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      min-width: 180px;
-    }
-
-    .tree-search-wrapper svg, .tree-search-wrapper i {
-      position: absolute;
-      left: 11px;
-      color: var(--text-muted);
-      pointer-events: none;
-      width: 14px;
-      height: 14px;
-    }
-
-    .tree-search-input {
-      width: 100%;
-      padding: 8px 12px 8px 33px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-light);
-      font-size: 0.84rem;
-      font-family: var(--font-main);
-      outline: none;
-      background: #fafbf9;
-      transition: all 0.15s ease;
-    }
-
-    .tree-scroll-body {
-      flex: 1;
-      padding: 14px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-height: 0;
-    }
-
-    .tree-section-card {
-      background: #ffffff;
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-      width: 100%;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .tree-section-header {
-      background: #f4f6f1;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-      border-bottom: 1px solid var(--border-light);
-      flex-shrink: 0;
-    }
-
-    .tree-table-body {
-      display: block;
-    }
-
-    .tree-section-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .tree-section-title {
-      font-family: var(--font-mono);
-      font-size: 0.86rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .line-jump-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: var(--radius-pill);
-      background: #ffffff;
-      border: 1px solid var(--border-light);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .line-jump-pill:hover {
-      background: var(--primary-lime);
-      border-color: var(--primary-lime-border);
-      color: var(--text-dark);
-    }
-
-    .tree-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      padding: 10px 14px;
-      border-bottom: 1px solid #f2f3ee;
-      cursor: pointer;
-    }
-
-    .tree-row-child {
-      padding-left: 18px;
-      border-left: 2px solid #e6e9e1;
-      background: #fafbf9;
-    }
-
-    @media (min-width: 680px) {
-      .tree-row {
-        grid-template-columns: 240px 1fr auto;
-        gap: 16px;
-        align-items: baseline;
-      }
-    }
-
-    .type-pill {
-      font-size: 0.62rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      padding: 2px 6px;
-      border-radius: 4px;
-      letter-spacing: 0.4px;
-      background: #e6e9e1;
-      color: #55594f;
-    }
-
-    .type-pill.string { background: #e0f6dc; color: #15691b; }
-    .type-pill.number { background: #f3e8ff; color: #6b21a8; }
-    .type-pill.boolean { background: #dcfce7; color: #166534; }
-    .type-pill.array { background: #fef3c7; color: #92400e; }
-    .type-pill.table { background: #e0e7ff; color: #3730a3; }
 
     /* BUDGET INSPECTOR STYLES */
     .budget-inspector-wrapper {
@@ -1719,16 +1542,7 @@
           <span>moonli</span>
         </a>
 
-        <div class="nav-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openSampleModal()">
-            <i data-lucide="folder-open" style="width: 14px; height: 14px;"></i>
-            <span>Templates</span>
-          </button>
-          <button class="btn btn-dark btn-sm" onclick="triggerFileUpload()">
-            <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
-            <span>Upload .toml</span>
-          </button>
-        </div>
+
       </div>
     </div>
   </header>
@@ -1737,31 +1551,27 @@
   <section class="hero-section">
     <div class="container">
       <div class="hero-card">
-        <h1 class="hero-title">Financial TOML Studio & Visual Budget</h1>
+        <h1 class="hero-title">Your budget, Plain text, Completely local</h1>
         <p class="hero-subtitle">
-          Manage subscriptions, track predictable income, and calculate your monthly net budget visually. 100% private and on-device.
+          Build and maintain your budget from a single TOML file. No accounts. No cloud. Everything runs in your browser.
         </p>
 
-        <div class="hero-actions">
-          <button class="btn btn-dark" onclick="loadSampleTemplate('financials')">
-            <i data-lucide="wallet" style="width: 15px; height: 15px;"></i>
-            <span>Load financials.toml</span>
+        <div class="hero-actions" style="flex-direction: row; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-dark" onclick="triggerFileUpload()" style="padding: 12px 28px; font-size: 1rem; font-weight: 800;">
+            <i data-lucide="file-up" style="width: 16px; height: 16px;"></i>
+            <span>Open TOML File</span>
           </button>
-          <button class="btn btn-ghost" style="background: rgba(255,255,255,0.85);" onclick="triggerFileUpload()">
-            <i data-lucide="file-up" style="width: 15px; height: 15px;"></i>
-            <span>Upload File</span>
-          </button>
-          <button class="btn btn-ghost" style="background: rgba(255,255,255,0.85);" onclick="openSampleModal()">
+          <button class="btn btn-ghost" style="background: rgba(255,255,255,0.85); padding: 12px 28px; font-size: 1rem; font-weight: 800;" onclick="openSampleModal()">
             <i data-lucide="layers" style="width: 15px; height: 15px;"></i>
-            <span>More Templates</span>
+            <span>View Examples</span>
           </button>
         </div>
       </div>
 
       <div class="quick-strip">
-        <span><i data-lucide="zap" style="width:13px;height:13px;color:#70c010;"></i> Real-Time Monthly Aggregation</span>
-        <span><i data-lucide="calendar" style="width:13px;height:13px;color:#70c010;"></i> Rate History & Multi-Month Support</span>
-        <span><i data-lucide="shield-check" style="width:13px;height:13px;color:#70c010;"></i> 100% In-Browser & Local</span>
+        <span><i data-lucide="shield" style="width:13px;height:13px;color:#70c010;"></i> Local - Nothing leaves your device</span>
+        <span><i data-lucide="git-branch" style="width:13px;height:13px;color:#70c010;"></i> Versionable - Works with Git</span>
+        <span><i data-lucide="lock" style="width:13px;height:13px;color:#70c010;"></i> Future-proof - No vendor lock-in</span>
       </div>
     </div>
   </section>
@@ -1796,20 +1606,16 @@
           </div>
 
           <!-- Row 3: Action Buttons -->
-          <div class="toolbar-actions-grid">
-            <button class="btn btn-ghost btn-sm" onclick="formatTomlDocument()" title="Format & Prettify TOML">
-              <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
-              <span>Format</span>
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="copyTomlContent()" title="Copy TOML to clipboard">
-              <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
-              <span>Copy</span>
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="shareTomlFile()" title="Save to Files / Share">
-              <i data-lucide="share" style="width: 13px; height: 13px;"></i>
-              <span>Share</span>
-            </button>
-            <button class="btn btn-lime btn-sm btn-download" onclick="downloadTomlFile()" title="Download as .toml file">
+            <div class="toolbar-actions-grid">
+             <button class="btn btn-ghost btn-sm" onclick="formatTomlDocument()" title="Format & Prettify TOML">
+               <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+               <span>Format</span>
+             </button>
+             <button class="btn btn-ghost btn-sm" onclick="copyTomlContent()" title="Copy TOML to clipboard">
+               <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+               <span>Copy</span>
+             </button>
+             <button class="btn btn-lime btn-sm btn-download" onclick="downloadTomlFile()" title="Download as .toml file">
               <i data-lucide="download" style="width: 14px; height: 14px;"></i>
               <span>Download</span>
             </button>
@@ -1823,10 +1629,6 @@
             <button class="tab-btn active" id="tabEditorBtn" onclick="switchTab('editor')">
               <i data-lucide="code-2" style="width: 13px; height: 13px;"></i>
               <span>Editor</span>
-            </button>
-            <button class="tab-btn" id="tabTreeBtn" onclick="switchTab('tree')">
-              <i data-lucide="network" style="width: 13px; height: 13px;"></i>
-              <span>Tree View</span>
             </button>
             <button class="tab-btn" id="tabBudgetBtn" onclick="switchTab('budget')">
               <i data-lucide="wallet" style="width: 13px; height: 13px;"></i>
@@ -1876,23 +1678,6 @@
             <textarea id="rawTextarea" class="raw-textarea-editor" spellcheck="false" placeholder="Write or load TOML content here..."></textarea>
           </div>
 
-          <!-- Tab 2: Enhanced Tree Inspector -->
-          <div class="tab-content" id="tabTree">
-            <div class="tree-inspector-wrapper">
-              <div class="tree-header-controls">
-                <div class="tree-search-wrapper">
-                  <i data-lucide="search"></i>
-                  <input type="text" class="tree-search-input" id="treeSearchInput" placeholder="Filter tables, keys, or values..." oninput="filterTreeNodes()">
-                </div>
-                <div class="tree-meta-info" id="treeMetaCount" style="font-size: 0.76rem; font-weight:700; color:var(--text-muted);">
-                  0 sections
-                </div>
-              </div>
-
-              <div class="tree-scroll-body" id="treeContainer"></div>
-            </div>
-          </div>
-
           <!-- Tab 3: Visual Financial Budget Inspector -->
           <div class="tab-content" id="tabBudget">
             <div class="budget-inspector-wrapper">
@@ -1905,17 +1690,13 @@
                 </div>
 
                 <div class="budget-controls-right">
-                  <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">Currency:</span>
-                  <select id="budgetCurrencySelect" class="budget-year-select" style="padding: 4px 8px;" onchange="handleCurrencyChange(this.value)">
-                    <option value="$">$ (USD)</option>
-                    <option value="€">€ (EUR)</option>
-                    <option value="£">£ (GBP)</option>
-                    <option value="CHF">CHF</option>
-                  </select>
-                  <button class="btn btn-ghost btn-sm" onclick="quickAddRecurringSnippet()">
-                    <i data-lucide="plus" style="width: 12px; height: 12px;"></i>
-                    <span>Add Item</span>
-                  </button>
+                 <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">Currency:</span>
+                   <select id="budgetCurrencySelect" class="budget-year-select" style="padding: 4px 8px;" onchange="handleCurrencyChange(this.value)">
+                     <option value="$">$ (USD)</option>
+                     <option value="€">€ (EUR)</option>
+                     <option value="£">£ (GBP)</option>
+                     <option value="CHF">CHF</option>
+                   </select>
                 </div>
               </div>
 
@@ -1945,7 +1726,7 @@
   <div class="modal-overlay" id="sampleModal" onclick="handleModalOverlayClick(event)">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">Select a Template</div>
+        <div class="modal-title">View Examples</div>
         <button class="btn btn-ghost btn-icon-only" onclick="closeSampleModal()">
           <i data-lucide="x" style="width: 15px; height: 15px;"></i>
         </button>
@@ -2006,18 +1787,26 @@
   <!-- Minimal Footer -->
   <footer>
     <div class="container">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <svg class="logo-icon" viewBox="0 0 624 637" fill="none" xmlns="<http://www.w3.org/2000/svg>" style="width: 22px; height: 22.4px;">
-            <rect x="34" y="58" width="551" height="529" rx="120" ry="120" fill="#b9fe67" />
-            <path d="M 134,151.5 H 320.5 V 531.5 A 98.5,98.5 0 0 1 222,433 V 284 H 87 V 198.5 A 47,47 0 0 1 134,151.5 Z" fill="#0c0d0c" />
-            <path d="M 336.5,151.5 H 452 A 80,80 0 0 1 532,231.5 V 284 H 389 A 52.5,52.5 0 0 1 336.5,231.5 Z" fill="#0c0d0c" />
-          </svg>
-          <span>moonli financials</span>
-        </div>
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <svg class="logo-icon" viewBox="0 0 624 637" fill="none" xmlns="<http://www.w3.org/2000/svg>" style="width: 22px; height: 22.4px;">
+              <rect x="34" y="58" width="551" height="529" rx="120" ry="120" fill="#b9fe67" />
+              <path d="M 134,151.5 H 320.5 V 531.5 A 98.5,98.5 0 0 1 222,433 V 284 H 87 V 198.5 A 47,47 0 0 1 134,151.5 Z" fill="#0c0d0c" />
+              <path d="M 336.5,151.5 H 452 A 80,80 0 0 1 532,231.5 V 284 H 389 A 52.5,52.5 0 0 1 336.5,231.5 Z" fill="#0c0d0c" />
+            </svg>
+            <span>moonli</span>
+          </div>
 
-        <div>© 2026 moonli • In-Browser TOML Studio & Financial Budget Analyzer</div>
-      </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <a href="https://github.com/FlorianDilli/TOML-Editor" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; color: #9ba095; text-decoration: none; font-weight: 600; font-size: 0.78rem; transition: color 0.15s;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink: 0;">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58 0-.28 0-1.02-.02-2-3.34.73-4.04-1.42-4.04-1.42-.54-1.38-1.33-1.75-1.33-1.75-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.3.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0C17 5.92 18 6.24 18 6.24c.64 1.66.24 2.88.12 3.18.77.84 1.24 1.92 1.24 3.22 0 4.6-2.8 5.63-5.48 5.92.43.37.82 1.1.82 2.22 0 1.6-.02 2.9-.02 3.3 0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+              GitHub
+            </a>
+            <div>© 2026 moonli</div>
+          </div>
+        </div>
     </div>
   </footer>
 
@@ -2041,10 +1830,8 @@
       "piggy-bank": '<path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h.01"/>',
       "sparkles": '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
       "copy": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
-      "share": '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/>',
       "download": '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
       "code-2": '<path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>',
-      "network": '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
       "wrap-text": '<line x1="3" x2="21" y1="6" y2="6"/><path d="M3 12h15a3 3 0 1 1 0 6h-4"/><polyline points="16 16 14 18 16 20"/><line x1="3" x2="10" y1="18" y2="18"/>',
       "undo-2": '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/>',
       "redo-2": '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/>',
@@ -2711,7 +2498,7 @@ force_https = true
     let currentError = null;
     let activeTab = "editor";
     let isLineWrap = localStorage.getItem("moonli_toml_wrap") !== "false";
-    let budgetCurrency = localStorage.getItem("moonli_budget_currency") || "$";
+    let budgetCurrency = localStorage.getItem("moonli_budget_currency") || "€";
     let selectedBudgetYear = new Date().getFullYear();
     let selectedBudgetMonth = new Date().getMonth() + 1;
     let parsedTomlData = { root: {}, sections: [], keyCount: 0 };
@@ -2899,7 +2686,6 @@ force_https = true
       }
 
       renderIcons();
-      renderTreeInspector(parsed.sections);
 
       if (activeTab === "budget") {
         renderBudgetDashboard();
@@ -3106,7 +2892,7 @@ force_https = true
         paymentMonths: paymentMonths,
         dueMonthsNames: dueMonthsNames,
         isDueThisMonth: isDueThisMonth,
-        historyBadge: historyBadge,
+        historyBadge: null,
         line: tx._line || null
       };
     }
@@ -3205,15 +2991,11 @@ force_https = true
               This document does not contain any <code>[[recurring_transactions]]</code> yet. Load our financial template or add your recurring income and subscriptions to see your monthly budget visually.
             </p>
             <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-              <button class="btn btn-lime" onclick="loadSampleTemplate('financials')">
-                <i data-lucide="wallet" style="width: 14px; height: 14px;"></i>
-                <span>Load financials.toml Template</span>
-              </button>
-              <button class="btn btn-ghost" onclick="quickAddRecurringSnippet()">
-                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
-                <span>Add [[recurring_transactions]]</span>
-              </button>
-            </div>
+               <button class="btn btn-lime" onclick="loadSampleTemplate('financials')">
+                 <i data-lucide="wallet" style="width: 14px; height: 14px;"></i>
+                 <span>Load financials.toml Template</span>
+               </button>
+             </div>
           </div>
         `;
         renderIcons();
@@ -3287,11 +3069,10 @@ force_https = true
           incomeListHtml += `
             <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
               <div class="tx-item-left">
-                <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
+                <span class="tx-item-title" ${!item.isDueThisMonth ? 'style="color: var(--text-muted);"' : ''}>${escapeHtml(item.displayName)}</span>
                 <div class="tx-item-meta">
                   <span class="category-badge">${escapeHtml(item.category)}</span>
                   ${formatRecurrenceNote(item)}
-                  ${item.historyBadge ? `<span class="history-applied-badge">${item.historyBadge}</span>` : ''}
                 </div>
               </div>
               <div class="tx-item-right">
@@ -3314,11 +3095,10 @@ force_https = true
           expenseListHtml += `
             <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
               <div class="tx-item-left">
-                <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
+                <span class="tx-item-title" ${!item.isDueThisMonth ? 'style="color: var(--text-muted);"' : ''}>${escapeHtml(item.displayName)}</span>
                 <div class="tx-item-meta">
                   <span class="category-badge">${escapeHtml(item.category)}</span>
                   ${formatRecurrenceNote(item)}
-                  ${item.historyBadge ? `<span class="history-applied-badge">${item.historyBadge}</span>` : ''}
                 </div>
               </div>
               <div class="tx-item-right">
@@ -3428,14 +3208,6 @@ force_https = true
           </div>
         </div>
 
-        <div class="annual-chart-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:700; color:var(--text-muted);">
-            <span>${selectedBudgetYear} Monthly Cash Flow Trend</span>
-            <span>Annual Net: <strong style="color:var(--text-dark);">${annualIncome >= annualExpense ? '+' : '-'}${formatCurrency(Math.abs(annualIncome - annualExpense))}</strong></span>
-          </div>
-          <div class="annual-chart-bars">
-            ${chartColsHtml}
-          </div>
         </div>
       `;
 
@@ -3449,7 +3221,7 @@ force_https = true
       if (item.isDueThisMonth) {
         return `<span class="badge-due-month">⚡ Actual Payment (${formatCurrency(item.rawAbsAmount)})</span>`;
       }
-      return `<span class="badge-theoretical-month">○ Theoretical Reserve (Paid in ${item.dueMonthsNames} • ${formatCurrency(item.rawAbsAmount)})</span>`;
+      return `<span class="badge-theoretical-month">Theoretical Payment (Paid in ${item.dueMonthsNames} • ${formatCurrency(item.rawAbsAmount)})</span>`;
     }
 
     function selectBudgetMonth(m) {
@@ -3498,162 +3270,6 @@ amount_history = [
         cmEditor.focus();
         showToast("Appended [[recurring_transactions]]", "success");
       }
-    }
-
-    /* TREE INSPECTOR */
-    function renderTreeInspector(sections) {
-      const container = document.getElementById("treeContainer");
-      const metaCount = document.getElementById("treeMetaCount");
-      container.innerHTML = "";
-
-      const validSections = sections.filter(sec => sec.entries.length > 0 || sec.name !== "Root");
-      metaCount.textContent = `${validSections.length} ${validSections.length === 1 ? 'section' : 'sections'}`;
-
-      if (!validSections || validSections.length === 0) {
-        container.innerHTML = `
-          <div style="color:var(--text-muted); text-align:center; padding: 48px 16px; font-size: 0.9rem;">
-            <i data-lucide="file-search" style="width: 32px; height: 32px; margin-bottom: 8px; opacity: 0.4;"></i>
-            <p style="font-weight: 600;">No TOML tables or keys found.</p>
-          </div>
-        `;
-        renderIcons();
-        return;
-      }
-
-      validSections.forEach((sec) => {
-        const isArrayOfTables = sec.name.startsWith("[[");
-        const card = document.createElement("div");
-        card.className = "tree-section-card";
-        card.dataset.sectionName = sec.name.toLowerCase();
-
-        const header = document.createElement("div");
-        header.className = "tree-section-header";
-        header.title = `Jump to header line ${sec.line}`;
-        header.onclick = (e) => {
-          e.stopPropagation();
-          jumpToLine(sec.line);
-        };
-
-        header.innerHTML = `
-          <div class="tree-section-left">
-            <i data-lucide="${isArrayOfTables ? 'layers' : (sec.name === 'Root' ? 'box' : 'table')}" style="width: 15px; height: 15px; color: #555c50; flex-shrink: 0;"></i>
-            <span class="tree-section-title">${escapeHtml(sec.name)}</span>
-            <span style="font-size:0.68rem; font-weight:700; padding:2px 7px; border-radius:var(--radius-pill); background:#e2e6dc; color:var(--text-muted); flex-shrink:0;">${sec.entries.length}</span>
-          </div>
-          <button class="line-jump-pill">L${sec.line}</button>
-        `;
-
-        const body = document.createElement("div");
-        body.className = "tree-table-body";
-
-        sec.entries.forEach((item) => {
-          const row = document.createElement("div");
-          row.className = "tree-row";
-          row.dataset.key = item.key.toLowerCase();
-          row.title = `Jump to line ${item.line}`;
-          row.onclick = (e) => {
-            e.stopPropagation();
-            jumpToLine(item.line);
-          };
-
-          let displayVal = item.val;
-          if (displayVal && typeof displayVal === "object" && !Array.isArray(displayVal)) {
-            const clone = Object.assign({}, displayVal);
-            delete clone._line;
-            displayVal = clone;
-          }
-
-          const isArrayOfObjects = Array.isArray(item.val) && item.val.length > 0 && item.val.every(v => v && typeof v === "object");
-          if (isArrayOfObjects) {
-            row.dataset.val = item.key.toLowerCase();
-            const fieldsSummary = item.val.map((obj, idx) => {
-              const from = obj.from || obj.date || "?";
-              const amount = obj.amount !== undefined ? obj.amount : obj.value || "?";
-              const suffix = (typeof amount === "number" && amount < 0) ? ` ($${Math.abs(amount).toFixed(2)})` : "";
-              return `#${idx + 1} ${from}${suffix}`;
-            }).join("\n");
-            row.innerHTML = `
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="type-pill ${item.type}">${item.type}</span>
-                <strong style="font-family:var(--font-mono); font-size:0.83rem;">${escapeHtml(item.key)}</strong>
-                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">(${item.val.length} entries)</span>
-              </div>
-              <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere; color:var(--text-muted); white-space:pre-line; line-height:1.5;">
-                ${escapeHtml(fieldsSummary)}
-              </div>
-              <button class="line-jump-pill" style="justify-self:end;">L${item.line}</button>
-            `;
-            body.appendChild(row);
-
-            item.val.forEach((obj, idx) => {
-              const childRow = document.createElement("div");
-              childRow.className = "tree-row tree-row-child";
-              const childLine = obj._line || item.line;
-              childRow.title = `Jump to line ${childLine}`;
-              childRow.dataset.key = item.key.toLowerCase();
-              childRow.dataset.val = Object.entries(obj).filter(([k]) => k !== "_line").map(([k, v]) => `${k} ${typeof v === "string" ? `"${v}"` : v}`).join(" ").toLowerCase();
-              childRow.onclick = (e) => {
-                e.stopPropagation();
-                jumpToLine(childLine);
-              };
-              const fields = Object.entries(obj).filter(([k]) => k !== "_line").map(([k, v]) => `${k}: ${typeof v === "string" ? `"${v}"` : v}`).join(", ");
-              childRow.innerHTML = `
-                <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
-                  <span style="font-size:0.68rem; font-weight:700; color:var(--text-muted);">#${idx + 1}</span>
-                  <span style="font-family:var(--font-mono); font-size:0.8rem; word-break:break-all;">${escapeHtml(fields)}</span>
-                </div>
-                <div></div>
-                <button class="line-jump-pill" style="justify-self:end;">L${childLine}</button>
-              `;
-              body.appendChild(childRow);
-            });
-          } else {
-            row.dataset.val = String(displayVal).toLowerCase();
-            row.innerHTML = `
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="type-pill ${item.type}">${item.type}</span>
-                <strong style="font-family:var(--font-mono); font-size:0.83rem;">${escapeHtml(item.key)}</strong>
-              </div>
-              <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere;">
-                ${escapeHtml(JSON.stringify(displayVal))}
-              </div>
-              <button class="line-jump-pill" style="justify-self:end;">L${item.line}</button>
-            `;
-            body.appendChild(row);
-          }
-        });
-
-        card.appendChild(header);
-        card.appendChild(body);
-        container.appendChild(card);
-      });
-
-      renderIcons();
-    }
-
-    function filterTreeNodes() {
-      const q = document.getElementById("treeSearchInput").value.toLowerCase().trim();
-      const cards = document.querySelectorAll(".tree-section-card");
-
-      cards.forEach(card => {
-        const secName = card.dataset.sectionName;
-        const rows = card.querySelectorAll(".tree-row");
-        let cardHasMatch = secName.includes(q);
-
-        rows.forEach(row => {
-          const k = row.dataset.key || "";
-          const v = row.dataset.val || "";
-          const match = k.includes(q) || v.includes(q);
-          if (match) {
-            row.style.display = "";
-            cardHasMatch = true;
-          } else {
-            row.style.display = q ? "none" : "";
-          }
-        });
-
-        card.style.display = cardHasMatch ? "block" : "none";
-      });
     }
 
     function escapeHtml(str) {
@@ -3758,30 +3374,6 @@ amount_history = [
       showToast('Downloaded "' + filename + '"', "success");
     }
 
-    async function shareTomlFile() {
-      const content = getEditorValue();
-      let filename = filenameInput.value.trim() || "financials.toml";
-      if (!filename.endsWith(".toml")) filename += ".toml";
-
-      if (navigator.share && navigator.canShare) {
-        try {
-          const file = new File([content], filename, { type: "text/plain" });
-          if (navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: filename,
-              text: "Financial budget configuration: " + filename
-            });
-            showToast("Shared successfully", "success");
-            return;
-          }
-        } catch (err) {
-          if (err.name !== "AbortError") console.log("Share error:", err);
-        }
-      }
-      downloadTomlFile();
-    }
-
     function copyTomlContent() {
       const content = getEditorValue();
       navigator.clipboard.writeText(content).then(() => {
@@ -3877,11 +3469,6 @@ amount_history = [
           setTimeout(() => cmEditor.refresh(), 50);
           setTimeout(() => cmEditor.refresh(), 200);
         }
-      } else if (tabId === "tree") {
-        document.getElementById("tabTreeBtn").classList.add("active");
-        document.getElementById("tabTree").classList.add("active");
-        document.getElementById("mobileSymbolBar").style.display = "none";
-        filterTreeNodes();
       } else if (tabId === "budget") {
         document.getElementById("tabBudgetBtn").classList.add("active");
         document.getElementById("tabBudget").classList.add("active");
