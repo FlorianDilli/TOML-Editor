@@ -757,6 +757,32 @@
     .cm-s-default .cm-property { color: #0b0c0a; font-weight: 600; }
     .cm-s-default .cm-operator { color: #61665a; font-weight: 700; }
 
+    .badge-due-month {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .badge-theoretical-month {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      background: #f1f3ee;
+      color: #555a4f;
+      border: 1px solid #dfe2d8;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
     /* TREE INSPECTOR STYLES */
     .tree-inspector-wrapper {
       display: flex;
@@ -3033,47 +3059,53 @@ force_https = true
           effectiveAmount = Number(latest.amount);
           historyBadge = `From ${latest.from}`;
         } else {
-          // If all history entries lie in the future and there is no base amount, it's not yet active
           if (effectiveAmount === null) return null;
         }
       }
 
       if (effectiveAmount === null || isNaN(effectiveAmount)) return null;
 
-      // Recurrence check: does the payment occur in this specific month?
       const recurrenceMonths = Math.max(1, parseInt(tx.recurrence_months, 10) || 1);
+
+      // Resolve all payment months in a calendar year
       let paymentMonths = [];
       if (Array.isArray(tx.payment_month)) {
         paymentMonths = tx.payment_month.map(Number);
       } else if (tx.payment_month !== undefined && tx.payment_month !== null) {
         paymentMonths = [Number(tx.payment_month)];
-      }
-
-      let occursThisMonth = false;
-      if (recurrenceMonths === 1) {
-        occursThisMonth = true;
-      } else if (paymentMonths.length > 0) {
-        occursThisMonth = paymentMonths.includes(month);
-      } else if (startDate) {
-        const startYear = startDate.getFullYear();
-        const startMonth = startDate.getMonth() + 1;
-        const diffMonths = (year - startYear) * 12 + (month - startMonth);
-        occursThisMonth = diffMonths >= 0 && (diffMonths % recurrenceMonths === 0);
       } else {
-        occursThisMonth = ((month - 1) % recurrenceMonths === 0);
+        const baseMonth = startDate ? (startDate.getMonth() + 1) : 1;
+        for (let m = 1; m <= 12; m++) {
+          if (((m - baseMonth) % recurrenceMonths + recurrenceMonths) % recurrenceMonths === 0) {
+            paymentMonths.push(m);
+          }
+        }
       }
 
-      if (!occursThisMonth) return null;
+      // Check whether this transaction actually bills in this month
+      const isDueThisMonth = (recurrenceMonths === 1) || paymentMonths.includes(month);
+
+      // Monthly theoretical budgeted amount
+      const monthlyAmount = effectiveAmount / recurrenceMonths;
+
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dueMonthsNames = paymentMonths.map(m => monthNames[m - 1]).join(", ");
 
       return {
         displayName: tx.intuitive_name || tx.description || "Untitled Transaction",
         description: tx.description || "",
         category: tx.category || "General",
-        amount: effectiveAmount,
-        absAmount: Math.abs(effectiveAmount),
+        // Theoretical monthly allocation
+        amount: monthlyAmount,
+        absAmount: Math.abs(monthlyAmount),
+        // Actual full payment info
+        rawAmount: effectiveAmount,
+        rawAbsAmount: Math.abs(effectiveAmount),
         isExpense: effectiveAmount < 0,
         recurrenceMonths: recurrenceMonths,
         paymentMonths: paymentMonths,
+        dueMonthsNames: dueMonthsNames,
+        isDueThisMonth: isDueThisMonth,
         historyBadge: historyBadge,
         line: tx._line || null
       };
@@ -3082,8 +3114,10 @@ force_https = true
     function calculateMonthBudget(parsedRoot, year, month) {
       const incomeItems = [];
       const expenseItems = [];
-      let totalIncome = 0;
-      let totalExpense = 0;
+      let totalIncome = 0;       // Theoretical monthly averaged income
+      let totalExpense = 0;      // Theoretical monthly averaged expense
+      let actualIncomeDue = 0;   // Cash actually arriving this month
+      let actualExpenseDue = 0;  // Cash actually billed this month
 
       const recurring = Array.isArray(parsedRoot.recurring_transactions) ? parsedRoot.recurring_transactions : [];
 
@@ -3098,9 +3132,11 @@ force_https = true
 
         if (res.isExpense) {
           totalExpense += res.absAmount;
+          if (res.isDueThisMonth) actualExpenseDue += res.rawAbsAmount;
           expenseItems.push(item);
         } else {
           totalIncome += res.absAmount;
+          if (res.isDueThisMonth) actualIncomeDue += res.rawAbsAmount;
           incomeItems.push(item);
         }
       });
@@ -3126,6 +3162,8 @@ force_https = true
         year,
         totalIncome,
         totalExpense,
+        actualIncomeDue,
+        actualExpenseDue,
         netSavings,
         savingsRate,
         cashOnHand,
@@ -3252,12 +3290,15 @@ force_https = true
                 <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
                 <div class="tx-item-meta">
                   <span class="category-badge">${escapeHtml(item.category)}</span>
-                  <span class="recurrence-note">${formatRecurrenceNote(item)}</span>
+                  ${formatRecurrenceNote(item)}
                   ${item.historyBadge ? `<span class="history-applied-badge">${item.historyBadge}</span>` : ''}
                 </div>
               </div>
               <div class="tx-item-right">
-                <span class="tx-amount income">+${formatCurrency(item.absAmount)}</span>
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                  <span class="tx-amount income">+${formatCurrency(item.absAmount)}<span style="font-size:0.68rem; font-weight:600; opacity:0.75;">/mo</span></span>
+                  ${item.recurrenceMonths > 1 ? `<span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">${item.isDueThisMonth ? 'Billed now' : 'Averaged'}</span>` : ''}
+                </div>
                 ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
               </div>
             </div>
@@ -3276,12 +3317,15 @@ force_https = true
                 <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
                 <div class="tx-item-meta">
                   <span class="category-badge">${escapeHtml(item.category)}</span>
-                  <span class="recurrence-note">${formatRecurrenceNote(item)}</span>
+                  ${formatRecurrenceNote(item)}
                   ${item.historyBadge ? `<span class="history-applied-badge">${item.historyBadge}</span>` : ''}
                 </div>
               </div>
               <div class="tx-item-right">
-                <span class="tx-amount expense">-${formatCurrency(item.absAmount)}</span>
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                  <span class="tx-amount expense">-${formatCurrency(item.absAmount)}<span style="font-size:0.68rem; font-weight:600; opacity:0.75;">/mo</span></span>
+                  ${item.recurrenceMonths > 1 ? `<span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">${item.isDueThisMonth ? 'Billed now' : 'Averaged'}</span>` : ''}
+                </div>
                 ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
               </div>
             </div>
@@ -3317,13 +3361,13 @@ force_https = true
           <div class="kpi-card">
             <span class="kpi-label"><i data-lucide="trending-up" style="width:13px;height:13px;color:#166534;"></i> Income</span>
             <span class="kpi-value income">+${formatCurrency(activeMonthCalc.totalIncome)}</span>
-            <span class="kpi-sub">${activeMonthCalc.incomeItems.length} source${activeMonthCalc.incomeItems.length === 1 ? '' : 's'}</span>
+            <span class="kpi-sub">Cash received: ${formatCurrency(activeMonthCalc.actualIncomeDue)}</span>
           </div>
 
           <div class="kpi-card">
             <span class="kpi-label"><i data-lucide="trending-down" style="width:13px;height:13px;color:var(--danger);"></i> Expenses</span>
             <span class="kpi-value expense">-${formatCurrency(activeMonthCalc.totalExpense)}</span>
-            <span class="kpi-sub">${activeMonthCalc.expenseItems.length} item${activeMonthCalc.expenseItems.length === 1 ? '' : 's'}</span>
+            <span class="kpi-sub">Cash billed: ${formatCurrency(activeMonthCalc.actualExpenseDue)}</span>
           </div>
 
           <div class="kpi-card kpi-net ${isNetPos ? '' : 'negative'}">
@@ -3399,15 +3443,13 @@ force_https = true
     }
 
     function formatRecurrenceNote(item) {
-      if (item.recurrenceMonths === 1) return "Monthly";
-      if (item.recurrenceMonths === 12) {
-        if (item.paymentMonths && item.paymentMonths.length > 0) {
-          const mNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-          return `Yearly (${item.paymentMonths.map(m => mNames[m - 1]).join(', ')})`;
-        }
-        return "Yearly";
+      if (item.recurrenceMonths === 1) {
+        return `<span class="recurrence-note">Monthly</span>`;
       }
-      return `Every ${item.recurrenceMonths} mos`;
+      if (item.isDueThisMonth) {
+        return `<span class="badge-due-month">⚡ Actual Payment (${formatCurrency(item.rawAbsAmount)})</span>`;
+      }
+      return `<span class="badge-theoretical-month">○ Theoretical Reserve (Paid in ${item.dueMonthsNames} • ${formatCurrency(item.rawAbsAmount)})</span>`;
     }
 
     function selectBudgetMonth(m) {
