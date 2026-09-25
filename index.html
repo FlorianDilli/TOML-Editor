@@ -2437,7 +2437,12 @@ force_https = true
         }
 
         if (c === "[") return this.parseArray();
-        if (c === "{") return this.parseInlineTable();
+        if (c === "{") {
+          const startLine = this.line;
+          const tbl = this.parseInlineTable();
+          if (tbl && typeof tbl === "object") tbl._line = startLine;
+          return tbl;
+        }
 
         if (this.peekAhead(4) === "true" && this.isWordBoundary(4)) {
           this.pos += 4; this.col += 4; return true;
@@ -3459,24 +3464,75 @@ amount_history = [
           const row = document.createElement("div");
           row.className = "tree-row";
           row.dataset.key = item.key.toLowerCase();
-          row.dataset.val = String(item.val).toLowerCase();
           row.title = `Jump to line ${item.line}`;
           row.onclick = (e) => {
             e.stopPropagation();
             jumpToLine(item.line);
           };
 
-          row.innerHTML = `
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="type-pill ${item.type}">${item.type}</span>
-              <strong style="font-family:var(--font-mono); font-size:0.83rem;">${escapeHtml(item.key)}</strong>
-            </div>
-            <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere;">
-              ${escapeHtml(JSON.stringify(item.val))}
-            </div>
-            <button class="line-jump-pill" style="justify-self:end;">L${item.line}</button>
-          `;
-          body.appendChild(row);
+          let displayVal = item.val;
+          if (displayVal && typeof displayVal === "object" && !Array.isArray(displayVal)) {
+            const clone = Object.assign({}, displayVal);
+            delete clone._line;
+            displayVal = clone;
+          }
+
+          const isArrayOfObjects = Array.isArray(item.val) && item.val.length > 0 && item.val.every(v => v && typeof v === "object");
+          if (isArrayOfObjects) {
+            row.dataset.val = item.key.toLowerCase();
+            const fieldsSummary = item.val.map((obj, idx) => {
+              const fields = Object.entries(obj).filter(([k]) => k !== "_line").map(([k, v]) => `${k}: ${typeof v === "string" ? `"${v}"` : v}`).join(", ");
+              return `#${idx + 1} { ${fields} }`;
+            }).join(" | ");
+            row.innerHTML = `
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="type-pill ${item.type}">${item.type}</span>
+                <strong style="font-family:var(--font-mono); font-size:0.83rem;">${escapeHtml(item.key)}</strong>
+                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">(${item.val.length} entries)</span>
+              </div>
+              <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere; color:var(--text-muted);">
+                ${escapeHtml(fieldsSummary)}
+              </div>
+              <button class="line-jump-pill" style="justify-self:end;">L${item.line}</button>
+            `;
+            body.appendChild(row);
+
+            item.val.forEach((obj, idx) => {
+              const childRow = document.createElement("div");
+              childRow.className = "tree-row tree-row-child";
+              const childLine = obj._line || item.line;
+              childRow.title = `Jump to line ${childLine}`;
+              childRow.dataset.key = item.key.toLowerCase();
+              childRow.dataset.val = Object.entries(obj).filter(([k]) => k !== "_line").map(([k, v]) => `${k} ${typeof v === "string" ? `"${v}"` : v}`).join(" ").toLowerCase();
+              childRow.onclick = (e) => {
+                e.stopPropagation();
+                jumpToLine(childLine);
+              };
+              const fields = Object.entries(obj).filter(([k]) => k !== "_line").map(([k, v]) => `${k}: ${typeof v === "string" ? `"${v}"` : v}`).join(", ");
+              childRow.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+                  <span style="font-size:0.68rem; font-weight:700; color:var(--text-muted);">#${idx + 1}</span>
+                  <span style="font-family:var(--font-mono); font-size:0.8rem; word-break:break-all;">${escapeHtml(fields)}</span>
+                </div>
+                <div></div>
+                <button class="line-jump-pill" style="justify-self:end;">L${childLine}</button>
+              `;
+              body.appendChild(childRow);
+            });
+          } else {
+            row.dataset.val = String(displayVal).toLowerCase();
+            row.innerHTML = `
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="type-pill ${item.type}">${item.type}</span>
+                <strong style="font-family:var(--font-mono); font-size:0.83rem;">${escapeHtml(item.key)}</strong>
+              </div>
+              <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere;">
+                ${escapeHtml(JSON.stringify(displayVal))}
+              </div>
+              <button class="line-jump-pill" style="justify-self:end;">L${item.line}</button>
+            `;
+            body.appendChild(row);
+          }
         });
 
         card.appendChild(header);
