@@ -2869,14 +2869,12 @@ force_https = true
       if (!cmEditor) return;
 
       const targetLine = Math.max(0, lineNum - 1);
-      const tryJump = () => {
+      setTimeout(() => {
+        cmEditor.refresh();
         cmEditor.setCursor(targetLine, 0);
         cmEditor.scrollIntoView({ line: targetLine, ch: 0 });
-        const lineContent = cmEditor.getLine(targetLine) || "";
-        cmEditor.setSelection({ line: targetLine, ch: 0 }, { line: targetLine, ch: lineContent.length });
         cmEditor.focus();
-      };
-      requestAnimationFrame(() => requestAnimationFrame(tryJump));
+      }, 150);
     }
 
     /* Financial Calculation Engine */
