@@ -869,7 +869,7 @@
       flex-direction: column;
       height: 100%;
       background: #f7f9f5;
-      overflow: hidden;
+      overflow-y: auto;
       width: 100%;
       min-height: 0;
     }
@@ -1121,6 +1121,7 @@
     .sankey-svg-wrap {
       width: 100%;
       overflow-x: auto;
+      overflow-y: visible;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -1128,7 +1129,7 @@
       display: block;
       width: 100%;
       height: auto;
-      min-width: 580px;
+      min-width: 480px;
     }
 
     .sankey-ribbon {
@@ -3127,33 +3128,47 @@ force_https = true
         return "";
       }
 
-      const svgWidth = 740;
-      const nodeCount = Math.max(leftNodes.length, rightNodes.length);
-      const svgHeight = Math.max(260, nodeCount * 44 + 40);
-      const padY = 24;
-      const usableHeight = svgHeight - (padY * 2);
-      const nodeWidth = 14;
+      const svgWidth = 620;
+      const padY = 20;
+      const leftX = 120;
+      const rightX = 500;
+      const gap = 14;
+      const nodeWidth = 12;
+      const minNodeH = 32;
 
-      const leftX = 140;
-      const rightX = 580;
-      const gap = 12;
+      // 1. Calculate required height for each column with guaranteed minNodeH per item
+      function calculateColumnHeight(nodes) {
+        if (!nodes.length) return 0;
+        const totalGaps = (nodes.length - 1) * gap;
+        const minHeights = nodes.length * minNodeH;
+        return totalGaps + minHeights;
+      }
 
-      function layoutNodes(nodes, xPos) {
-        const totalGap = (nodes.length - 1) * gap;
-        const availableH = usableHeight - totalGap;
+      const leftReqH = calculateColumnHeight(leftNodes);
+      const rightReqH = calculateColumnHeight(rightNodes);
+      const targetUsableH = Math.max(leftReqH, rightReqH, 220);
+
+      // 2. Layout nodes using dynamic proportional heights with min-height clamp
+      function layoutNodes(nodes, xPos, targetHeight) {
+        const totalGaps = (nodes.length - 1) * gap;
+        const freeH = Math.max(targetHeight - totalGaps, nodes.length * minNodeH);
+
         let currY = padY;
-
         nodes.forEach(node => {
-          node.h = Math.max(8, (node.amount / totalFlow) * availableH);
+          node.h = Math.max(minNodeH, (node.amount / totalFlow) * freeH);
           node.y = currY;
           node.x = xPos;
           node.flowsUsed = 0;
           currY += node.h + gap;
         });
+        return currY - gap;
       }
 
-      layoutNodes(leftNodes, leftX);
-      layoutNodes(rightNodes, rightX);
+      const leftEndY = layoutNodes(leftNodes, leftX, targetUsableH);
+      const rightEndY = layoutNodes(rightNodes, rightX, targetUsableH);
+
+      // 3. Dynamically adapt svgHeight to fit all content cleanly
+      const svgHeight = Math.max(leftEndY, rightEndY) + padY;
 
       let defs = "";
       let ribbonsHtml = "";
@@ -3205,10 +3220,10 @@ force_https = true
             <rect x="${n.x}" y="${n.y}" width="${nodeWidth}" height="${n.h}" rx="4" fill="${n.color}">
               <title>${escapeHtml(n.name)}: ${formatCurrency(n.amount)} (${pct}%)</title>
             </rect>
-            <text x="${n.x - 10}" y="${n.y + (n.h / 2) - 4}" text-anchor="end" font-size="11.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">
+            <text x="${n.x - 8}" y="${n.y + (n.h / 2) - 7}" text-anchor="end" font-size="10.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">
               ${escapeHtml(n.name)}
             </text>
-            <text x="${n.x - 10}" y="${n.y + (n.h / 2) + 9}" text-anchor="end" font-size="10" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">
+            <text x="${n.x - 8}" y="${n.y + (n.h / 2) + 8}" text-anchor="end" font-size="9" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">
               +${formatCurrency(n.amount)}
             </text>
           </g>
@@ -3222,10 +3237,10 @@ force_https = true
             <rect x="${n.x}" y="${n.y}" width="${nodeWidth}" height="${n.h}" rx="4" fill="${n.color}">
               <title>${escapeHtml(n.name)}: ${formatCurrency(n.amount)} (${pct}%)</title>
             </rect>
-            <text x="${n.x + nodeWidth + 10}" y="${n.y + (n.h / 2) - 4}" text-anchor="start" font-size="11.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">
+            <text x="${n.x + nodeWidth + 8}" y="${n.y + (n.h / 2) - 7}" text-anchor="start" font-size="10.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">
               ${escapeHtml(n.name)}
             </text>
-            <text x="${n.x + nodeWidth + 10}" y="${n.y + (n.h / 2) + 9}" text-anchor="start" font-size="10" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">
+            <text x="${n.x + nodeWidth + 8}" y="${n.y + (n.h / 2) + 8}" text-anchor="start" font-size="9" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">
               ${formatCurrency(n.amount)} (${pct}%)
             </text>
           </g>
@@ -3297,6 +3312,9 @@ force_https = true
 
       const netSavings = totalIncome - totalExpense;
       const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
+
+      incomeItems.sort((a, b) => b.absAmount - a.absAmount);
+      expenseItems.sort((a, b) => b.absAmount - a.absAmount);
 
       return {
         month,
