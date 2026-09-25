@@ -122,7 +122,6 @@
       opacity: 0;
       width: 1px;
       height: 1px;
-      pointer-events: none;
     }
 
     /* Header */
@@ -823,6 +822,8 @@
       box-shadow: var(--shadow-sm);
       width: 100%;
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .tree-section-header {
@@ -834,6 +835,11 @@
       cursor: pointer;
       user-select: none;
       border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+
+    .tree-table-body {
+      display: block;
     }
 
     .tree-section-left {
@@ -2036,7 +2042,7 @@
           const width = el.style.width || "14px";
           const height = el.style.height || "14px";
           const color = el.style.color || "currentColor";
-          const svg = document.createElementNS("<http://www.w3.org/2000/svg>", "svg");
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
           svg.setAttribute("viewBox", "0 0 24 24");
           svg.setAttribute("fill", "none");
           svg.setAttribute("stroke", color);
