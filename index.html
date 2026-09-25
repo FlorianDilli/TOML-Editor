@@ -2094,12 +2094,14 @@
 # │ PREDICTABLE INCOME                                                        │
 # ╰───────────────────────────────────────────────────────────────────────────╯
 [[recurring_transactions]]
+intuitive_name    = "Salary"
 description       = "Monthly Salary"
 amount            = 3400.00
 recurrence_months = 1
 start_date        = "2024-01-start"
 
 [[recurring_transactions]]
+intuitive_name    = "Freelance Retainer"
 description       = "Freelance Retainer"
 amount            = 600.00
 recurrence_months = 1
@@ -2122,6 +2124,7 @@ start_date        = "2024-01-01"
 
 # Utilities with amount history and no initial amount or start_date
 [[recurring_transactions]]
+intuitive_name    = "Electricity"
 description       = "MAINGAU Energie GmbH"
 recurrence_months = 1
 amount_history = [
@@ -3056,7 +3059,8 @@ force_https = true
       if (!occursThisMonth) return null;
 
       return {
-        description: tx.description || "Untitled Transaction",
+        displayName: tx.intuitive_name || tx.description || "Untitled Transaction",
+        description: tx.description || "",
         amount: effectiveAmount,
         absAmount: Math.abs(effectiveAmount),
         isExpense: effectiveAmount < 0,
@@ -3237,9 +3241,9 @@ force_https = true
       } else {
         activeMonthCalc.incomeItems.forEach(item => {
           incomeListHtml += `
-            <div class="tx-item" onclick="jumpToLine(${item.line})">
+            <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
               <div class="tx-item-left">
-                <span class="tx-item-title">${escapeHtml(item.description)}</span>
+                <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
                 <div class="tx-item-meta">
                   <span class="category-badge">${escapeHtml(item.category)}</span>
                   <span class="recurrence-note">${formatRecurrenceNote(item)}</span>
@@ -3261,9 +3265,9 @@ force_https = true
       } else {
         activeMonthCalc.expenseItems.forEach(item => {
           expenseListHtml += `
-            <div class="tx-item" onclick="jumpToLine(${item.line})">
+            <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
               <div class="tx-item-left">
-                <span class="tx-item-title">${escapeHtml(item.description)}</span>
+                <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
                 <div class="tx-item-meta">
                   <span class="category-badge">${escapeHtml(item.category)}</span>
                   <span class="recurrence-note">${formatRecurrenceNote(item)}</span>
@@ -3431,7 +3435,8 @@ force_https = true
     function quickAddRecurringSnippet() {
       switchTab("editor");
       const snippet = `\n[[recurring_transactions]]
-description       = "New Subscription"
+intuitive_name    = "New Subscription"
+description       = "Vendor Name / Bank Description"
 recurrence_months = 1
 amount_history = [
   { from = "${selectedBudgetYear}-${String(selectedBudgetMonth).padStart(2, '0')}-01", amount = -14.99 },
