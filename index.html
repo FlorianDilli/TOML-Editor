@@ -15,27 +15,27 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='<http://www.w3.org/2000/svg>' viewBox='0 0 624 637'%3E%3Crect x='34' y='58' width='551' height='529' rx='120' ry='120' fill='%23b9fe67'/%3E%3Cpath d='M 134,151.5 H 320.5 V 531.5 A 98.5,98.5 0 0 1 222,433 V 284 H 87 V 198.5 A 47,47 0 0 1 134,151.5 Z' fill='%230c0d0c'/%3E%3Cpath d='M 336.5,151.5 H 452 A 80,80 0 0 1 532,231.5 V 284 H 389 A 52.5,52.5 0 0 1 336.5,231.5 Z' fill='%230c0d0c'/%3E%3C/svg%3E">
 
   <!-- Google Fonts -->
-  <link rel="preconnect" href="<https://fonts.googleapis.com>">
-  <link rel="preconnect" href="<https://fonts.gstatic.com>" crossorigin>
-  <link href="<https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap>" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 
   <!-- CodeMirror Styles & Scripts -->
-  <link rel="stylesheet" href="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css>">
-  <link rel="stylesheet" href="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css>">
-  <link rel="stylesheet" href="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css>">
-  <link rel="stylesheet" href="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.min.css>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.min.css">
 
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/toml/toml.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js>"></script>
-  <script src="<https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js>"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/toml/toml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
 
   <!-- Lucide CDN with fallback -->
-  <script src="<https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js>"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 
   <style>
     :root {
@@ -2873,27 +2873,33 @@ force_https = true
     function jumpToLine(lineNum) {
       if (!lineNum || isNaN(lineNum)) return;
       if (activeTab !== "editor") switchTab("editor");
-      if (!cmEditor) return;
+      scrollToEditor();
 
       const targetLine = Math.max(0, lineNum - 1);
-
-      const attemptJump = () => {
-        if (!cmEditor) return;
-        const wrapper = cmEditor.getWrapperElement();
-        const rect = wrapper.getBoundingClientRect();
-
-        if (rect.width === 0 || rect.height === 0) {
-          setTimeout(attemptJump, 50);
-          return;
+      setTimeout(() => {
+        if (cmEditor) {
+          cmEditor.refresh();
+          cmEditor.focus();
+          const lineText = cmEditor.getLine(targetLine) || "";
+          cmEditor.setSelection(
+            { line: targetLine, ch: 0 },
+            { line: targetLine, ch: lineText.length }
+          );
+          cmEditor.scrollIntoView({ line: targetLine, ch: 0 }, 180);
+        } else {
+          const ta = document.getElementById("rawTextarea");
+          if (ta) {
+            ta.focus();
+            const lines = ta.value.split("\n");
+            let start = 0;
+            for (let i = 0; i < targetLine && i < lines.length; i++) {
+              start += lines[i].length + 1;
+            }
+            const end = start + (lines[targetLine] ? lines[targetLine].length : 0);
+            ta.setSelectionRange(start, end);
+          }
         }
-
-        cmEditor.refresh();
-        cmEditor.setCursor(targetLine, 0);
-        cmEditor.scrollIntoView({ line: targetLine, ch: 0 });
-        cmEditor.focus();
-      };
-
-      setTimeout(attemptJump, 30);
+      }, 100);
     }
 
     /* Financial Calculation Engine */
