@@ -714,6 +714,11 @@
       border-right: 1px solid var(--border-light) !important;
       padding-right: 4px;
       min-width: 48px;
+      display: flex !important;
+    }
+
+    .CodeMirror-linenumbers {
+      display: block !important;
     }
 
     .CodeMirror-linenumber {
@@ -722,6 +727,7 @@
       padding: 0 4px 0 8px !important;
       min-width: 28px;
       text-align: right;
+      display: inline-block !important;
     }
 
     .CodeMirror-activeline-background {
@@ -2724,6 +2730,7 @@ force_https = true
           cmEditor = CodeMirror.fromTextArea(textarea, {
             mode: "toml",
             lineNumbers: true,
+            gutters: ["CodeMirror-linenumbers"],
             styleActiveLine: true,
             matchBrackets: true,
             autoCloseBrackets: true,
@@ -2869,12 +2876,24 @@ force_https = true
       if (!cmEditor) return;
 
       const targetLine = Math.max(0, lineNum - 1);
-      setTimeout(() => {
+
+      const attemptJump = () => {
+        if (!cmEditor) return;
+        const wrapper = cmEditor.getWrapperElement();
+        const rect = wrapper.getBoundingClientRect();
+
+        if (rect.width === 0 || rect.height === 0) {
+          setTimeout(attemptJump, 50);
+          return;
+        }
+
         cmEditor.refresh();
         cmEditor.setCursor(targetLine, 0);
         cmEditor.scrollIntoView({ line: targetLine, ch: 0 });
         cmEditor.focus();
-      }, 150);
+      };
+
+      setTimeout(attemptJump, 30);
     }
 
     /* Financial Calculation Engine */
