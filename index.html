@@ -713,14 +713,14 @@
       background: #f9faf8 !important;
       border-right: 1px solid var(--border-light) !important;
       padding-right: 4px;
-      min-width: 36px;
+      min-width: 48px;
     }
 
     .CodeMirror-linenumber {
-      color: #9aa095 !important;
-      font-size: 11.5px !important;
-      padding: 0 4px 0 6px !important;
-      min-width: 22px;
+      color: #6b7264 !important;
+      font-size: 12px !important;
+      padding: 0 4px 0 8px !important;
+      min-width: 28px;
       text-align: right;
     }
 
@@ -889,6 +889,12 @@
       padding: 10px 14px;
       border-bottom: 1px solid #f2f3ee;
       cursor: pointer;
+    }
+
+    .tree-row-child {
+      padding-left: 18px;
+      border-left: 2px solid #e6e9e1;
+      background: #fafbf9;
     }
 
     @media (min-width: 680px) {
@@ -2859,15 +2865,18 @@ force_https = true
 
     function jumpToLine(lineNum) {
       if (!lineNum || isNaN(lineNum)) return;
-      switchTab("editor");
-      if (cmEditor) {
-        const targetLine = Math.max(0, lineNum - 1);
+      if (activeTab !== "editor") switchTab("editor");
+      if (!cmEditor) return;
+
+      const targetLine = Math.max(0, lineNum - 1);
+      const tryJump = () => {
         cmEditor.setCursor(targetLine, 0);
-        cmEditor.scrollIntoView({ line: targetLine, ch: 0 }, 100);
+        cmEditor.scrollIntoView({ line: targetLine, ch: 0 });
         const lineContent = cmEditor.getLine(targetLine) || "";
         cmEditor.setSelection({ line: targetLine, ch: 0 }, { line: targetLine, ch: lineContent.length });
         cmEditor.focus();
-      }
+      };
+      requestAnimationFrame(() => requestAnimationFrame(tryJump));
     }
 
     /* Financial Calculation Engine */
@@ -3481,16 +3490,18 @@ amount_history = [
           if (isArrayOfObjects) {
             row.dataset.val = item.key.toLowerCase();
             const fieldsSummary = item.val.map((obj, idx) => {
-              const fields = Object.entries(obj).filter(([k]) => k !== "_line").map(([k, v]) => `${k}: ${typeof v === "string" ? `"${v}"` : v}`).join(", ");
-              return `#${idx + 1} { ${fields} }`;
-            }).join(" | ");
+              const from = obj.from || obj.date || "?";
+              const amount = obj.amount !== undefined ? obj.amount : obj.value || "?";
+              const suffix = (typeof amount === "number" && amount < 0) ? ` ($${Math.abs(amount).toFixed(2)})` : "";
+              return `#${idx + 1} ${from}${suffix}`;
+            }).join("\n");
             row.innerHTML = `
               <div style="display:flex; align-items:center; gap:8px;">
                 <span class="type-pill ${item.type}">${item.type}</span>
                 <strong style="font-family:var(--font-mono); font-size:0.83rem;">${escapeHtml(item.key)}</strong>
                 <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">(${item.val.length} entries)</span>
               </div>
-              <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere; color:var(--text-muted);">
+              <div style="font-family:var(--font-mono); font-size:0.82rem; overflow-wrap:anywhere; color:var(--text-muted); white-space:pre-line; line-height:1.5;">
                 ${escapeHtml(fieldsSummary)}
               </div>
               <button class="line-jump-pill" style="justify-self:end;">L${item.line}</button>
