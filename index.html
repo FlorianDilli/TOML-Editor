@@ -2096,6 +2096,7 @@
 [[recurring_transactions]]
 intuitive_name    = "Salary"
 description       = "Monthly Salary"
+category          = "Income"
 amount            = 3400.00
 recurrence_months = 1
 start_date        = "2024-01-start"
@@ -2103,6 +2104,7 @@ start_date        = "2024-01-start"
 [[recurring_transactions]]
 intuitive_name    = "Freelance Retainer"
 description       = "Freelance Retainer"
+category          = "Income"
 amount            = 600.00
 recurrence_months = 1
 start_date        = "2025-06-01"
@@ -2112,12 +2114,14 @@ start_date        = "2025-06-01"
 # ╰───────────────────────────────────────────────────────────────────────────╯
 [[recurring_transactions]]
 description       = "Apartment Rent"
+category          = "Rent & Housing"
 amount            = -1250.00
 recurrence_months = 1
 start_date        = "2024-01-01"
 
 [[recurring_transactions]]
 description       = "Broadband Internet"
+category          = "Utilities"
 amount            = -45.00
 recurrence_months = 1
 start_date        = "2024-01-01"
@@ -2126,6 +2130,7 @@ start_date        = "2024-01-01"
 [[recurring_transactions]]
 intuitive_name    = "Electricity"
 description       = "MAINGAU Energie GmbH"
+category          = "Utilities"
 recurrence_months = 1
 amount_history = [
   { from = "2025-09-01", amount = -11.95 },
@@ -2136,6 +2141,7 @@ amount_history = [
 # Yearly Car Insurance paid once per year in January
 [[recurring_transactions]]
 description       = "Car Insurance"
+category          = "Transport"
 amount            = -240.00
 recurrence_months = 12
 payment_month     = 1
@@ -2143,6 +2149,7 @@ start_date        = "2024-01-01"
 
 [[recurring_transactions]]
 description       = "Spotify"
+category          = "Subscriptions"
 amount            = -10.99
 recurrence_months = 1
 start_date        = "2023-01-01"
@@ -3061,6 +3068,7 @@ force_https = true
       return {
         displayName: tx.intuitive_name || tx.description || "Untitled Transaction",
         description: tx.description || "",
+        category: tx.category || "General",
         amount: effectiveAmount,
         absAmount: Math.abs(effectiveAmount),
         isExpense: effectiveAmount < 0,
@@ -3072,7 +3080,6 @@ force_https = true
     }
 
     function calculateMonthBudget(parsedRoot, year, month) {
-      const categoryRules = parsedRoot.category_rules || {};
       const incomeItems = [];
       const expenseItems = [];
       let totalIncome = 0;
@@ -3084,10 +3091,9 @@ force_https = true
         const res = getEffectiveTransactionForMonth(tx, year, month);
         if (!res) return;
 
-        const category = matchCategory(res.description, categoryRules);
         const item = {
           ...res,
-          category: category
+          category: res.category || "General"
         };
 
         if (res.isExpense) {
@@ -3437,6 +3443,7 @@ force_https = true
       const snippet = `\n[[recurring_transactions]]
 intuitive_name    = "New Subscription"
 description       = "Vendor Name / Bank Description"
+category          = "Subscriptions"
 recurrence_months = 1
 amount_history = [
   { from = "${selectedBudgetYear}-${String(selectedBudgetMonth).padStart(2, '0')}-01", amount = -14.99 },
