@@ -1277,19 +1277,116 @@
       #tabSplitBtn { display: none !important; }
       .key-hint { display: none !important; }
       .privacy-tag { display: none !important; }
-      .header-right .btn-ghost span { display: none; }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
+      :root {
+        --header-height: 48px;
+      }
+
       .app-header {
         padding: 0 8px;
         gap: 6px;
+        justify-content: space-between;
       }
+
+      /* Keep left, center, right neatly sized without wrapping into each other */
+      .header-left {
+        flex: 0 0 auto;
+        gap: 6px;
+      }
+
+      .header-center {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 0;
+      }
+
+      .header-right {
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow: visible;
+      }
+
+      /* Compact brand logo & pills */
       .brand-logo span { display: none; }
       .nav-divider { display: none; }
-      .filename-pill { max-width: 140px; }
-      .tools-group { display: none; }
-      .status-bar-right { display: none; }
+      
+      /* Hide verbose filename pill and status badge on small screens to save space */
+      .filename-pill {
+        max-width: 95px;
+        min-width: 0;
+        padding: 2px 6px;
+      }
+      .status-badge span {
+        display: none;
+      }
+      .status-badge {
+        padding: 4px;
+        border-radius: 50%;
+      }
+
+      /* Tab buttons: compact padding so both fit comfortably */
+      .tab-group {
+        padding: 2px;
+        width: auto;
+      }
+      .tab-btn {
+        padding: 4px 8px;
+        font-size: 0.72rem;
+        gap: 4px;
+      }
+
+      /* Hide secondary action buttons on mobile, keep Download & Dark Mode accessible */
+      .tools-group,
+      .header-right .btn-ghost:not(#darkModeToggle) {
+        display: none !important;
+      }
+
+      /* Make the Download button icon-first or compact */
+      .header-right .btn-lime {
+        padding: 5px 9px;
+        font-size: 0.72rem;
+      }
+      .header-right .btn-lime span {
+        display: none; /* Shows download icon only to save space */
+      }
+      .header-right .btn-lime::after {
+        content: "Save";
+        margin-left: 2px;
+      }
+
+      /* Fix symbol bar layout: full horizontal scroll without overlap */
+      .mobile-symbols-bar {
+        padding: 6px 8px;
+        gap: 6px;
+        position: relative;
+        z-index: 10;
+        background: var(--bg-surface-subtle);
+      }
+      .symbol-chip {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+        min-width: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Status bar mobile adjustments */
+      .status-bar {
+        padding: 0 8px;
+        font-size: 0.68rem;
+      }
+      .status-bar-right {
+        display: none;
+      }
+      .status-bar-left {
+        gap: 8px;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
     }
   </style>
 </head>
@@ -3100,18 +3197,19 @@ amount_history = [
         document.getElementById("tabEditorBtn").classList.add("active");
         document.getElementById("tabEditor").classList.add("active");
         if (symbolBar) symbolBar.style.display = window.innerWidth <= 768 ? "flex" : "none";
-      } else if (tabId === "budget") {
-        document.getElementById("tabBudgetBtn").classList.add("active");
-        document.getElementById("tabBudget").classList.add("active");
+      } else {
         if (symbolBar) symbolBar.style.display = "none";
-        renderBudgetDashboard();
-      } else if (tabId === "split") {
-        document.getElementById("tabSplitBtn").classList.add("active");
-        document.getElementById("editorWrapper").classList.add("split-mode");
-        document.getElementById("tabEditor").classList.add("active");
-        document.getElementById("tabBudget").classList.add("active");
-        if (symbolBar) symbolBar.style.display = "none";
-        renderBudgetDashboard();
+        if (tabId === "budget") {
+          document.getElementById("tabBudgetBtn").classList.add("active");
+          document.getElementById("tabBudget").classList.add("active");
+          renderBudgetDashboard();
+        } else if (tabId === "split") {
+          document.getElementById("tabSplitBtn").classList.add("active");
+          document.getElementById("editorWrapper").classList.add("split-mode");
+          document.getElementById("tabEditor").classList.add("active");
+          document.getElementById("tabBudget").classList.add("active");
+          renderBudgetDashboard();
+        }
       }
 
       if (cmEditor) setTimeout(() => cmEditor.refresh(), 20);
