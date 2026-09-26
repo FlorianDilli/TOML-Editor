@@ -899,6 +899,17 @@
       color: var(--danger);
     }
 
+    .dark .month-chip.active {
+      background: var(--primary-lime);
+      color: var(--primary-lime-text);
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .dark .month-chip.active .month-chip-net {
+      color: var(--primary-lime-text);
+    }
+
     .month-kpi-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -2777,21 +2788,29 @@ force_https = true
         ? ["#f87171", "#fb923c", "#facc15", "#818cf8", "#c084fc", "#38bdf8", "#f472b6"]
         : ["#ef4444", "#f97316", "#eab308", "#6366f1", "#a855f7", "#0ea5e9", "#ec4899"];
 
-      const rightNodes = Object.entries(categoryMap).map(([name, amount], idx) => ({
+      let rightNodes = Object.entries(categoryMap).map(([name, amount], idx) => ({
         name,
         amount,
         color: categoryColors[idx % categoryColors.length]
       }));
 
-      if (netSavings > 0) rightNodes.push({ name: "Net Savings (Surplus)", amount: netSavings, color: surplusColor });
+      let surplusNode = null;
+      if (netSavings > 0) {
+        surplusNode = { name: "Surplus (Budget)", amount: netSavings, color: surplusColor };
+      }
+
+      rightNodes.sort((a, b) => b.amount - a.amount);
+
+      if (surplusNode) rightNodes.push(surplusNode);
 
       const totalFlow = Math.max(leftNodes.reduce((acc, n) => acc + n.amount, 0), rightNodes.reduce((acc, n) => acc + n.amount, 0), 1);
       if (totalFlow <= 1 && totalIncome === 0 && totalExpense === 0) return "";
 
-      const svgWidth = 640;
+      const svgWidth = 720;
       const padY = 16;
       const leftX = 110;
       const rightX = 490;
+      const surplusOffsetX = 55;
       const gap = 10;
       const nodeWidth = 8;
       const minNodeH = 22;
@@ -2817,6 +2836,8 @@ force_https = true
 
       const leftEndY = layoutNodes(leftNodes, leftX);
       const rightEndY = layoutNodes(rightNodes, rightX);
+      surplusNode = rightNodes.find(n => n.name === "Surplus (Budget)");
+      if (surplusNode) surplusNode.x = rightX + surplusOffsetX;
       const svgHeight = Math.max(leftEndY, rightEndY) + padY;
 
       let defs = "";
@@ -2847,7 +2868,7 @@ force_https = true
           `;
 
           const x0 = leftX + nodeWidth;
-          const x1 = rightX;
+          const x1 = rightNode.x;
           const xMid = (x0 + x1) / 2;
           const path = `M ${x0} ${lY0} C ${xMid} ${lY0}, ${xMid} ${rY0}, ${x1} ${rY0} L ${x1} ${rY1} C ${xMid} ${rY1}, ${xMid} ${lY1}, ${x0} ${lY1} Z`;
 
