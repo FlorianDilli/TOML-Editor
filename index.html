@@ -3083,7 +3083,7 @@ force_https = true
 
     function formatRecurrenceNote(item) {
       if (item.recurrenceMonths === 1) return `<span class="recurrence-note">Monthly</span>`;
-      if (item.isDueThisMonth) return `<span class="badge-due-month">⚡ Due (${formatCurrency(item.rawAbsAmount)})</span>`;
+      if (item.isDueThisMonth) return `<span class="badge-due-month">Due (${formatCurrency(item.rawAbsAmount)})</span>`;
       return `<span class="badge-theoretical-month">Paid in ${item.dueMonthsNames} (${formatCurrency(item.rawAbsAmount)})</span>`;
     }
 
