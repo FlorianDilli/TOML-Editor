@@ -157,7 +157,10 @@
       height: 1px;
     }
 
-    /* Unified Application Header */
+    /* ==========================================================================
+       FIXED APPLICATION HEADER & RESPONSIVE ADAPTATION
+       ========================================================================== */
+
     .app-header {
       height: var(--header-height);
       background: var(--bg-surface);
@@ -165,33 +168,277 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
-      gap: 12px;
+      padding: 0 10px;
+      gap: 8px;
       z-index: 100;
       flex-shrink: 0;
+      overflow-x: clip; /* Cleanly clip without causing page scrollbars */
+      overflow-y: hidden;
     }
 
     .header-left, .header-center, .header-right {
       display: flex;
       align-items: center;
-      gap: 8px;
       min-width: 0;
     }
 
     .header-left {
       flex: 0 1 auto;
-      flex-shrink: 1;
+      gap: 6px;
     }
 
     .header-center {
       flex: 0 0 auto;
+      justify-content: center;
     }
 
     .header-right {
-      flex: 1 1 auto;
+      flex: 0 1 auto;
       justify-content: flex-end;
-      flex-wrap: wrap;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* Ensure the filename pill scales gracefully without overlapping */
+    .filename-pill {
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-pill);
+      padding: 3px 8px;
+      gap: 5px;
+      min-width: 60px;
+      max-width: 160px;
+      flex: 1 1 auto;
+    }
+
+    .filename-input {
+      min-width: 0;
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      outline: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       overflow: hidden;
+    }
+
+    /* 1. Large Laptops / Desktops (≤ 1200px): Drop key hints & auxiliary editor buttons */
+    @media (max-width: 1200px) {
+      .key-hint {
+        display: none !important;
+      }
+      .tools-group {
+        display: none !important;
+      }
+    }
+
+    /* 2. Compact Desktops & Landscape Tablets (≤ 1040px): 
+          Collapse action buttons to icons and shorten tab labels */
+    @media (max-width: 1040px) {
+      .nav-divider {
+        display: none !important;
+      }
+      
+      /* Iconify header secondary buttons */
+      .header-right .btn-ghost:not(.btn-icon-only) {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
+      }
+      .header-right .btn-ghost:not(.btn-icon-only) span {
+        display: none !important;
+      }
+
+      /* Shorten Visual Budget label to just 'Budget' */
+      #tabBudgetBtn span:not(.badge-dot) {
+        font-size: 0;
+      }
+      #tabBudgetBtn span:not(.badge-dot)::after {
+        content: "Budget";
+        font-size: 0.78rem;
+      }
+    }
+
+    /* 3. Tablets (≤ 850px): Remove Split view and simplify status indicators */
+    @media (max-width: 850px) {
+      #tabSplitBtn {
+        display: none !important;
+      }
+
+      .status-badge span {
+        display: none !important;
+      }
+      .status-badge {
+        padding: 4px;
+        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        justify-content: center;
+      }
+
+      .filename-pill {
+        max-width: 110px;
+      }
+    }
+
+    /* 4. Mobile Devices (≤ 620px): Clean single-row header & streamlined status bar */
+    @media (max-width: 620px) {
+      :root {
+        --header-height: 46px;
+      }
+
+      .app-header {
+        padding: 0 6px;
+        gap: 4px;
+      }
+
+      .header-left {
+        flex: 1 1 auto;
+        min-width: 0;
+        gap: 4px;
+      }
+
+      .header-center {
+        flex: 0 0 auto;
+      }
+
+      .header-right {
+        flex: 0 0 auto;
+        gap: 3px;
+      }
+
+      .brand-logo {
+        display: none !important;
+      }
+
+      /* Hide auxiliary buttons */
+      button[onclick="openSampleModal()"],
+      button[onclick="copyTomlContent()"],
+      button[onclick="triggerFileUpload()"] {
+        display: none !important;
+      }
+
+      .filename-pill {
+        max-width: 120px;
+        padding: 2px 6px;
+      }
+
+      .status-badge {
+        padding: 3px;
+        border-radius: 50%;
+        min-width: 18px;
+        height: 18px;
+        justify-content: center;
+      }
+      .status-badge span {
+        display: none !important;
+      }
+
+      .tab-group {
+        padding: 2px;
+        gap: 2px;
+      }
+
+      .tab-btn {
+        padding: 4px 6px;
+        font-size: 0.72rem;
+        gap: 3px;
+      }
+
+      /* Status Bar: Hide verbose text badges */
+      .privacy-tag {
+        display: none !important;
+      }
+      .status-bar-right > span {
+        display: none !important; /* Hide "© 2026 moonli" */
+      }
+    }
+
+    /* 5. Extra-narrow screens (≤ 440px): Icon-only Save button & compact footer */
+    @media (max-width: 440px) {
+      /* Collapse Save button to icon-only circular pill */
+      .header-right .btn-lime {
+        width: 30px;
+        height: 30px;
+        padding: 0 !important;
+        border-radius: 50% !important;
+      }
+      .header-right .btn-lime span,
+      .header-right .btn-lime::after {
+        display: none !important;
+        content: "" !important;
+      }
+
+      .filename-pill {
+        max-width: 95px;
+      }
+
+      /* Status Bar: Show only essential counts on one clean line */
+      .status-bar {
+        padding: 0 8px;
+        font-size: 0.68rem;
+      }
+
+      .status-bar-left {
+        gap: 8px;
+      }
+
+      /* Hide key count & github link to leave room for Lines & Recurring */
+      .stat-badge:has(#statKeys),
+      #statKeysBadge {
+        display: none !important;
+      }
+
+      .status-bar-right {
+        display: none !important;
+      }
+    }
+
+
+
+    /* Tab button label responsiveness */
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 10px;
+      font-family: var(--font-main);
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-dark);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-dark);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #28a745;
+      display: inline-block;
     }
 
     .brand-logo {
@@ -221,36 +468,12 @@
       flex-shrink: 0;
     }
 
-    /* Filename & Validation Badge */
-    .filename-pill {
-      display: flex;
-      align-items: center;
-      background: var(--bg-surface-subtle);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-pill);
-      padding: 3px 10px;
-      gap: 6px;
-      max-width: 200px;
-      min-width: 110px;
-      transition: border-color 0.15s ease;
-    }
-
     .filename-pill:focus-within {
       border-color: var(--primary-lime-border);
       background: var(--bg-surface);
     }
 
-    .filename-input {
-      border: none;
-      outline: none;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      background: transparent;
-      width: 100%;
-      text-overflow: ellipsis;
-    }
+
 
     .status-badge {
       display: inline-flex;
@@ -274,7 +497,6 @@
       color: var(--danger);
     }
 
-    /* Segmented Tab View Switcher */
     .tab-group {
       display: inline-flex;
       align-items: center;
@@ -282,42 +504,6 @@
       padding: 3px;
       border-radius: var(--radius-pill);
       gap: 3px;
-    }
-
-    .tab-btn {
-      border: none;
-      background: transparent;
-      padding: 5px 12px;
-      font-family: var(--font-main);
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      border-radius: var(--radius-pill);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-      user-select: none;
-    }
-
-    .tab-btn:hover {
-      color: var(--text-dark);
-    }
-
-    .tab-btn.active {
-      background: var(--bg-surface);
-      color: var(--text-dark);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .tab-btn .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: #28a745;
-      display: inline-block;
     }
 
     .key-hint {
@@ -1075,25 +1261,31 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
+      padding: 0 10px;
       font-size: 0.72rem;
       color: var(--text-muted);
       flex-shrink: 0;
       z-index: 90;
       user-select: none;
+      white-space: nowrap;      /* Prevent text wrapping into multiple lines */
+      overflow: hidden;         /* Prevent vertical/horizontal text bleed */
     }
 
     .status-bar-left, .status-bar-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      min-width: 0;
+      white-space: nowrap;
     }
 
-    .stat-badge {
+    .stat-badge, .privacy-tag {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .stat-badge.badge-financial {
@@ -1279,137 +1471,7 @@
     .dark .cm-s-default .cm-property { color: #f2f5ee; font-weight: 600; }
     .dark .cm-s-default .cm-operator { color: #a2ab9d; font-weight: 700; }
 
-    /* Responsive Queries */
-    @media (max-width: 900px) {
-      #tabSplitBtn { display: none !important; }
-      .key-hint { display: none !important; }
-      .privacy-tag { display: none !important; }
-    }
 
-    @media (max-width: 768px) {
-      :root {
-        --header-height: 44px;
-      }
-
-      .app-header {
-        padding: 0 6px;
-        gap: 4px;
-        justify-content: space-between;
-      }
-
-      /* Hide logo completely on mobile to reclaim critical top space */
-      .brand-logo {
-        display: none !important;
-      }
-      .nav-divider {
-        display: none !important;
-      }
-
-      .header-left {
-        flex: 0 1 auto;
-        gap: 4px;
-        min-width: 0;
-      }
-
-      .header-center {
-        flex: 0 0 auto;
-        justify-content: center;
-      }
-
-      .header-right {
-        flex: 0 0 auto;
-        flex-wrap: nowrap;
-        gap: 4px;
-        overflow: visible;
-      }
-
-      /* Compact filename & status badge */
-      .filename-pill {
-        max-width: 85px;
-        min-width: 0;
-        padding: 2px 6px;
-      }
-      .filename-input {
-        font-size: 0.72rem;
-      }
-      .status-badge span {
-        display: none;
-      }
-      .status-badge {
-        padding: 4px;
-        border-radius: 50%;
-      }
-
-      /* Compact tab buttons */
-      .tab-group {
-        padding: 2px;
-      }
-      .tab-btn {
-        padding: 4px 6px;
-        font-size: 0.7rem;
-        gap: 3px;
-      }
-
-      /* Hide secondary actions on mobile, keep Clear, Download/Save & Theme */
-      .tools-group,
-      .header-right .btn-ghost:not(#darkModeToggle) {
-        display: none !important;
-      }
-
-      .header-right .btn-lime {
-        padding: 4px 8px;
-        font-size: 0.72rem;
-      }
-      .header-right .btn-lime span {
-        display: none;
-      }
-      .header-right .btn-lime::after {
-        content: "Save";
-        margin-left: 2px;
-      }
-
-      /* Clear button chip inside the mobile quick bar */
-      .symbol-chip.chip-danger {
-        color: var(--danger-text);
-        background: var(--danger-light);
-        border-color: var(--danger-border);
-        font-weight: 700;
-      }
-      .symbol-chip.chip-danger:active {
-        background: var(--danger);
-        color: #fff;
-      }
-
-      /* Smooth horizontal scroll for symbol bar */
-      .mobile-symbols-bar {
-        padding: 5px 6px;
-        gap: 5px;
-        position: relative;
-        z-index: 10;
-        background: var(--bg-surface-subtle);
-      }
-      .symbol-chip {
-        padding: 4px 8px;
-        font-size: 0.8rem;
-        min-width: 30px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .status-bar {
-        padding: 0 8px;
-        font-size: 0.68rem;
-      }
-      .status-bar-right {
-        display: none;
-      }
-      .status-bar-left {
-        gap: 8px;
-        overflow-x: auto;
-        white-space: nowrap;
-      }
-    }
   </style>
 </head>
 <body>
@@ -1592,7 +1654,7 @@
   <footer class="status-bar">
     <div class="status-bar-left">
       <span class="stat-badge"><i data-lucide="align-left" style="width: 11px; height: 11px;"></i> <span id="statLines">0 Lines</span></span>
-      <span class="stat-badge"><i data-lucide="key-round" style="width: 11px; height: 11px;"></i> <span id="statKeys">0 Keys</span></span>
+      <span class="stat-badge" id="statKeysBadge"><i data-lucide="key-round" style="width: 11px; height: 11px;"></i> <span id="statKeys">0 Keys</span></span>
       <span class="stat-badge badge-financial" id="financialStatusBadge"><i data-lucide="piggy-bank" style="width: 11px; height: 11px;"></i> <span id="statRecurringCount">0 Recurring</span></span>
       <span class="privacy-tag"><i data-lucide="shield" style="width: 11px; height: 11px; color: var(--success);"></i> 100% In-Browser & Local</span>
     </div>
