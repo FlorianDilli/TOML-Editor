@@ -1049,7 +1049,7 @@
       display: block;
       width: 100%;
       max-width: 960px;
-      max-height: 380px;
+      max-height: 480px;
       height: auto;
     }
 
@@ -1133,13 +1133,14 @@
       flex-direction: column;
     }
 
+    /* --- Refined Transaction Row & Category Styling --- */
     .tx-item {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--bg-surface-subtle);
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border-light);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 12px;
       transition: background 0.15s ease;
       cursor: pointer;
     }
@@ -1155,46 +1156,84 @@
     .tx-item-left {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       min-width: 0;
+      flex: 1 1 auto;
     }
 
     .tx-item-title {
-      font-size: 0.8rem;
+      font-size: 0.83rem;
       font-weight: 700;
       color: var(--text-dark);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      letter-spacing: -0.2px;
     }
 
     .tx-item-meta {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       flex-wrap: wrap;
+      line-height: 1.2;
     }
 
+    /* Soft, tinted category badge instead of solid block */
     .category-badge {
       font-family: var(--font-mono);
       font-size: 0.65rem;
       font-weight: 600;
-      padding: 1px 6px;
+      padding: 1.5px 6px;
       border-radius: 4px;
-      background: var(--card-gray);
-      color: var(--text-muted);
+      background: color-mix(in srgb, var(--cat-color, #999) 12%, transparent);
+      color: var(--cat-color, var(--text-muted));
+      border: 1px solid color-mix(in srgb, var(--cat-color, #999) 25%, transparent);
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    /* Right column: amount + line jump pill */
+    .tx-item-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .tx-amount {
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      font-weight: 800;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 1px;
+    }
+
+    .tx-amount.income { color: var(--success-text); }
+    .tx-amount.expense { color: var(--danger-text); }
+
+    .tx-amount .unit-mo {
+      font-size: 0.67rem;
+      font-weight: 600;
+      opacity: 0.7;
     }
 
     .line-jump-pill {
       font-family: var(--font-mono);
-      font-size: 0.66rem;
-      font-weight: 700;
+      font-size: 0.65rem;
+      font-weight: 600;
       padding: 2px 5px;
       border-radius: 4px;
       border: 1px solid var(--border-light);
       background: var(--bg-surface-subtle);
       color: var(--text-light-muted);
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     .line-jump-pill:hover {
@@ -1228,15 +1267,6 @@
       font-weight: 600;
       color: var(--text-light-muted);
     }
-
-    .tx-amount {
-      font-family: var(--font-mono);
-      font-size: 0.84rem;
-      font-weight: 800;
-    }
-
-    .tx-amount.income { color: var(--success-text); }
-    .tx-amount.expense { color: var(--danger-text); }
 
     .tx-empty-state {
       padding: 24px 12px;
@@ -2753,6 +2783,21 @@ force_https = true
       };
     }
 
+    function getSankeyCategoryColorMap(expenseItems, isDark) {
+      const categoryMap = {};
+      expenseItems.forEach(item => {
+        categoryMap[item.category] = (categoryMap[item.category] || 0) + item.absAmount;
+      });
+      const categoryColors = isDark
+        ? ["#f87171", "#fb923c", "#facc15", "#818cf8", "#c084fc", "#38bdf8", "#f472b6"]
+        : ["#ef4444", "#f97316", "#eab308", "#6366f1", "#a855f7", "#0ea5e9", "#ec4899"];
+      const colorMap = {};
+      Object.entries(categoryMap).forEach(([name, amount], idx) => {
+        colorMap[name] = categoryColors[idx % categoryColors.length];
+      });
+      return colorMap;
+    }
+
     function renderSankeyFlow(activeMonthCalc, monthName, year) {
       const incomeItems = activeMonthCalc.incomeItems || [];
       const expenseItems = activeMonthCalc.expenseItems || [];
@@ -2760,145 +2805,208 @@ force_https = true
       const totalExpense = activeMonthCalc.totalExpense;
       const netSavings = activeMonthCalc.netSavings;
 
+      const isDark = document.documentElement.classList.contains("dark");
+      const incomeColor = isDark ? "#4ade80" : "#16a34a";
+      const deficitColor = isDark ? "#f87171" : "#dc2626";
+      const surplusColor = "#b9fe67";
+
+      // 1. Prepare Left Nodes (Income Streams)
+      const incomeMap = {};
+      incomeItems.forEach(item => {
+        const name = (item.category && item.category !== "Income") ? item.category : (item.displayName || "Income");
+        incomeMap[name] = (incomeMap[name] || 0) + item.absAmount;
+      });
+
+      const leftNodes = [];
+      Object.entries(incomeMap).forEach(([name, amount]) => {
+        leftNodes.push({ name, amount, color: incomeColor });
+      });
+      if (leftNodes.length === 0) {
+        leftNodes.push({ name: "Unspecified Income", amount: Math.max(0, totalIncome), color: incomeColor });
+      }
+      if (netSavings < 0) {
+        leftNodes.push({ name: "Deficit (Savings Used)", amount: Math.abs(netSavings), color: deficitColor });
+      }
+      leftNodes.sort((a, b) => b.amount - a.amount);
+
+      // 2. Prepare Right Nodes (Expenses + Surplus)
       const categoryMap = {};
       expenseItems.forEach(item => {
         categoryMap[item.category] = (categoryMap[item.category] || 0) + item.absAmount;
       });
 
-      const incomeCategoryMap = {};
-      incomeItems.forEach(item => {
-        incomeCategoryMap[item.category] = (incomeCategoryMap[item.category] || 0) + item.absAmount;
-      });
+      const expenseCategoryColorMap = getSankeyCategoryColorMap(expenseItems, isDark);
 
-      const isDark = document.documentElement.classList.contains("dark");
-      const incomeColor = isDark ? "#4ade80" : "#199446";
-      const deficitColor = isDark ? "#ff6b72" : "#df3d42";
-      const surplusColor = isDark ? "#86efac" : "#14532d";
-
-      const leftNodes = [];
-      if (Object.keys(incomeCategoryMap).length > 0) {
-        Object.entries(incomeCategoryMap).forEach(([name, amount]) => leftNodes.push({ name, amount, color: incomeColor }));
-      } else {
-        leftNodes.push({ name: "Unspecified Income", amount: Math.max(0, totalIncome), color: incomeColor });
-      }
-
-      if (netSavings < 0) leftNodes.push({ name: "Deficit (Savings Used)", amount: Math.abs(netSavings), color: deficitColor });
-
-      const categoryColors = isDark
-        ? ["#f87171", "#fb923c", "#facc15", "#818cf8", "#c084fc", "#38bdf8", "#f472b6"]
-        : ["#ef4444", "#f97316", "#eab308", "#6366f1", "#a855f7", "#0ea5e9", "#ec4899"];
-
-      let rightNodes = Object.entries(categoryMap).map(([name, amount], idx) => ({
+      const rightNodes = Object.entries(categoryMap).map(([name, amount]) => ({
         name,
         amount,
-        color: categoryColors[idx % categoryColors.length]
+        color: expenseCategoryColorMap[name]
       }));
-
-      let surplusNode = null;
-      if (netSavings > 0) {
-        surplusNode = { name: "Surplus (Budget)", amount: netSavings, color: surplusColor };
-      }
-
       rightNodes.sort((a, b) => b.amount - a.amount);
 
-      if (surplusNode) rightNodes.push(surplusNode);
+      if (netSavings > 0) {
+        rightNodes.push({ name: "Surplus (Budget)", amount: netSavings, color: surplusColor });
+      }
 
-      const totalFlow = Math.max(leftNodes.reduce((acc, n) => acc + n.amount, 0), rightNodes.reduce((acc, n) => acc + n.amount, 0), 1);
+      // 3. Central Hub & Flow Capacity
+      const totalFlow = Math.max(
+        leftNodes.reduce((acc, n) => acc + n.amount, 0),
+        rightNodes.reduce((acc, n) => acc + n.amount, 0),
+        1
+      );
       if (totalFlow <= 1 && totalIncome === 0 && totalExpense === 0) return "";
 
-      const svgWidth = 720;
-      const padY = 16;
-      const leftX = 110;
-      const rightX = 490;
-      const surplusOffsetX = 55;
-      const gap = 10;
-      const nodeWidth = 8;
-      const minNodeH = 22;
+      const middleNode = {
+        name: "Total Income",
+        amount: totalFlow,
+        color: incomeColor
+      };
 
-      function calcColHeight(nodes) {
-        return nodes.length ? (nodes.length - 1) * gap + nodes.length * minNodeH : 0;
-      }
+      // 4. Proportional Sizing & Layout Geometry with Label Collision Prevention
+      const svgWidth = 840;
+      const padY = 32;
+      const gap = 20;              // Base gap for larger items
+      const minNodeSpacing = 32;   // Minimum distance between node centers to fit 2-line labels
+      const nodeWidth = 10;
+      const minNodeH = 6;
 
-      const targetUsableH = Math.max(calcColHeight(leftNodes), calcColHeight(rightNodes), 200);
+      const baseFlowH = Math.max(260, Math.min(380, rightNodes.length * 38));
+      const pxPerUnit = baseFlowH / totalFlow;
 
-      function layoutNodes(nodes, xPos) {
-        const freeH = Math.max(targetUsableH - (nodes.length - 1) * gap, nodes.length * minNodeH);
-        let currY = padY;
-        nodes.forEach(node => {
-          node.h = Math.max(minNodeH, (node.amount / totalFlow) * freeH);
-          node.y = currY;
-          node.x = xPos;
-          node.flowsUsed = 0;
-          currY += node.h + gap;
+      leftNodes.forEach(n => { n.h = Math.max(minNodeH, n.amount * pxPerUnit); });
+      rightNodes.forEach(n => { n.h = Math.max(minNodeH, n.amount * pxPerUnit); });
+      middleNode.h = Math.max(minNodeH, totalFlow * pxPerUnit);
+
+      // Accurately compute column heights taking min label spacing into account
+      function calcColumnHeight(nodes) {
+        if (!nodes.length) return 0;
+        let total = 0;
+        nodes.forEach((n, idx) => {
+          total += (idx === nodes.length - 1) ? n.h : Math.max(n.h + gap, minNodeSpacing);
         });
-        return currY - gap;
+        return total;
       }
 
-      const leftEndY = layoutNodes(leftNodes, leftX);
-      const rightEndY = layoutNodes(rightNodes, rightX);
-      surplusNode = rightNodes.find(n => n.name === "Surplus (Budget)");
-      if (surplusNode) surplusNode.x = rightX + surplusOffsetX;
-      const svgHeight = Math.max(leftEndY, rightEndY) + padY;
+      const leftColH = calcColumnHeight(leftNodes);
+      const rightColH = calcColumnHeight(rightNodes);
+      const midColH = middleNode.h;
 
+      const maxColH = Math.max(leftColH, rightColH, midColH);
+      const svgHeight = maxColH + padY * 2;
+
+      const leftX = 140;
+      const midX = 400;
+      const rightX = 640;
+
+      // Position nodes with guaranteed separation for text
+      function layoutColumn(nodes, xPos, colH) {
+        let currY = padY + (maxColH - colH) / 2;
+        nodes.forEach((n, idx) => {
+          n.x = xPos;
+          n.y = currY;
+          if (idx < nodes.length - 1) {
+            currY += Math.max(n.h + gap, minNodeSpacing);
+          }
+        });
+      }
+
+      layoutColumn(leftNodes, leftX, leftColH);
+      layoutColumn(rightNodes, rightX, rightColH);
+      middleNode.x = midX;
+      middleNode.y = padY + (maxColH - midColH) / 2;
+
+      // 5. Generate Ribbons
       let defs = "";
       let ribbonsHtml = "";
       let gradCounter = 0;
 
-      leftNodes.forEach((leftNode, li) => {
-        let leftConsumedY = leftNode.y;
-        rightNodes.forEach((rightNode, ri) => {
-          const flowAmount = (leftNode.amount * rightNode.amount) / totalFlow;
-          const flowHeightLeft = (flowAmount / leftNode.amount) * leftNode.h;
-          const flowHeightRight = (flowAmount / rightNode.amount) * rightNode.h;
+      // Stage 1: Left (Income) -> Middle (Total Income)
+      let midInConsumedY = middleNode.y;
+      leftNodes.forEach((ln, i) => {
+        const sliceH = (ln.amount / totalFlow) * middleNode.h;
+        const gradId = `ribbon_l_m_${i}_${gradCounter++}`;
+        defs += `
+          <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="${ln.color}" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="${middleNode.color}" stop-opacity="0.45"/>
+          </linearGradient>
+        `;
+        const x0 = ln.x + nodeWidth;
+        const x1 = middleNode.x;
+        const xMid = (x0 + x1) / 2;
+        const y0L = ln.y;
+        const y1L = ln.y + ln.h;
+        const y0R = midInConsumedY;
+        const y1R = midInConsumedY + sliceH;
+        midInConsumedY += sliceH;
 
-          const lY0 = leftConsumedY;
-          const lY1 = leftConsumedY + flowHeightLeft;
-          leftConsumedY = lY1;
-
-          const rY0 = rightNode.y + rightNode.flowsUsed;
-          const rY1 = rY0 + flowHeightRight;
-          rightNode.flowsUsed += flowHeightRight;
-
-          const gradId = `sankeyGrad_${li}_${ri}_${gradCounter++}`;
-          defs += `
-            <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="${leftNode.color}" stop-opacity="0.4"/>
-              <stop offset="100%" stop-color="${rightNode.color}" stop-opacity="0.4"/>
-            </linearGradient>
-          `;
-
-          const x0 = leftX + nodeWidth;
-          const x1 = rightNode.x;
-          const xMid = (x0 + x1) / 2;
-          const path = `M ${x0} ${lY0} C ${xMid} ${lY0}, ${xMid} ${rY0}, ${x1} ${rY0} L ${x1} ${rY1} C ${xMid} ${rY1}, ${xMid} ${lY1}, ${x0} ${lY1} Z`;
-
-          ribbonsHtml += `
-            <path class="sankey-ribbon" d="${path}" fill="url(#${gradId})" stroke="none">
-              <title>${escapeHtml(leftNode.name)} → ${escapeHtml(rightNode.name)}: ${formatCurrency(flowAmount)}/mo</title>
-            </path>
-          `;
-        });
+        const path = `M ${x0} ${y0L} C ${xMid} ${y0L}, ${xMid} ${y0R}, ${x1} ${y0R} L ${x1} ${y1R} C ${xMid} ${y1R}, ${xMid} ${y1L}, ${x0} ${y1L} Z`;
+        ribbonsHtml += `
+          <path class="sankey-ribbon" d="${path}" fill="url(#${gradId})" stroke="none">
+            <title>${escapeHtml(ln.name)} → Total Income: ${formatCurrency(ln.amount)}/mo</title>
+          </path>
+        `;
       });
 
+      // Stage 2: Middle (Total Income) -> Right (Expenses + Surplus)
+      let midOutConsumedY = middleNode.y;
+      rightNodes.forEach((rn, i) => {
+        const sliceH = (rn.amount / totalFlow) * middleNode.h;
+        const gradId = `ribbon_m_r_${i}_${gradCounter++}`;
+        defs += `
+          <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="${middleNode.color}" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="${rn.color}" stop-opacity="0.45"/>
+          </linearGradient>
+        `;
+        const x0 = middleNode.x + nodeWidth;
+        const x1 = rn.x;
+        const xMid = (x0 + x1) / 2;
+        const y0L = midOutConsumedY;
+        const y1L = midOutConsumedY + sliceH;
+        const y0R = rn.y;
+        const y1R = rn.y + rn.h;
+        midOutConsumedY += sliceH;
+
+        const path = `M ${x0} ${y0L} C ${xMid} ${y0L}, ${xMid} ${y0R}, ${x1} ${y0R} L ${x1} ${y1R} C ${xMid} ${y1R}, ${xMid} ${y1L}, ${x0} ${y1L} Z`;
+        ribbonsHtml += `
+          <path class="sankey-ribbon" d="${path}" fill="url(#${gradId})" stroke="none">
+            <title>Total Income → ${escapeHtml(rn.name)}: ${formatCurrency(rn.amount)}/mo</title>
+          </path>
+        `;
+      });
+
+      // 6. Generate Node Bars & Labels
       let nodesHtml = "";
+
+      // Inflows
       leftNodes.forEach(n => {
-        const pct = Math.round((n.amount / totalFlow) * 100);
         nodesHtml += `
           <g>
             <rect x="${n.x}" y="${n.y}" width="${nodeWidth}" height="${n.h}" rx="3" fill="${n.color}"></rect>
-            <text x="${n.x - 6}" y="${n.y + (n.h / 2) - 6}" text-anchor="end" font-size="10" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">${escapeHtml(n.name)}</text>
-            <text x="${n.x - 6}" y="${n.y + (n.h / 2) + 7}" text-anchor="end" font-size="9" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">+${formatCurrency(n.amount)}</text>
+            <text x="${n.x - 8}" y="${n.y + (n.h / 2) - 6}" text-anchor="end" font-size="10.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">${escapeHtml(n.name)}</text>
+            <text x="${n.x - 8}" y="${n.y + (n.h / 2) + 7}" text-anchor="end" font-size="9.5" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">+${formatCurrency(n.amount)}</text>
           </g>
         `;
       });
 
+      // Merged Center Node
+      nodesHtml += `
+        <g>
+          <rect x="${middleNode.x}" y="${middleNode.y}" width="${nodeWidth}" height="${middleNode.h}" rx="3" fill="${middleNode.color}"></rect>
+          <text x="${middleNode.x + (nodeWidth / 2)}" y="${middleNode.y - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-dark)">Total Income</text>
+          <text x="${middleNode.x + (nodeWidth / 2)}" y="${middleNode.y + middleNode.h + 13}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text-muted)">${formatCurrency(totalFlow)}</text>
+        </g>
+      `;
+
+      // Outflows
       rightNodes.forEach(n => {
         const pct = Math.round((n.amount / totalFlow) * 100);
         nodesHtml += `
           <g>
             <rect x="${n.x}" y="${n.y}" width="${nodeWidth}" height="${n.h}" rx="3" fill="${n.color}"></rect>
-            <text x="${n.x + nodeWidth + 6}" y="${n.y + (n.h / 2) - 6}" text-anchor="start" font-size="10" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">${escapeHtml(n.name)}</text>
-            <text x="${n.x + nodeWidth + 6}" y="${n.y + (n.h / 2) + 7}" text-anchor="start" font-size="9" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">${formatCurrency(n.amount)} (${pct}%)</text>
+            <text x="${n.x + nodeWidth + 8}" y="${n.y + (n.h / 2) - 6}" text-anchor="start" font-size="10.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">${escapeHtml(n.name)}</text>
+            <text x="${n.x + nodeWidth + 8}" y="${n.y + (n.h / 2) + 7}" text-anchor="start" font-size="9.5" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">${formatCurrency(n.amount)} (${pct}%)</text>
           </g>
         `;
       });
@@ -2910,7 +3018,7 @@ force_https = true
               <i data-lucide="split" style="width:13px;height:13px;color:var(--primary-lime-border);"></i>
               Cashflow Sankey (${monthName} ${year})
             </span>
-            <span style="font-size:0.7rem; color:var(--text-light-muted);">Inflows → Outflows & Surplus</span>
+            <span style="font-size:0.7rem; color:var(--text-light-muted);">Inflow → Total Income → Outflow & Budget</span>
           </div>
           <div class="sankey-svg-wrap">
             <svg class="sankey-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMid meet">
@@ -3046,41 +3154,51 @@ force_https = true
       const expensePct = Math.min(100, Math.round((activeMonthCalc.totalExpense / totalTurnover) * 100));
       const savingsPct = Math.max(0, 100 - expensePct);
 
+      const isDark = document.documentElement.classList.contains("dark");
+      const incomeColor = isDark ? "#4ade80" : "#16a34a";
+      const expenseCategoryColorMap = getSankeyCategoryColorMap(activeMonthCalc.expenseItems, isDark);
+
       let incomeListHtml = activeMonthCalc.incomeItems.length === 0
         ? `<div class="tx-empty-state">No planned income for ${monthNames[selectedBudgetMonth - 1]}.</div>`
-        : activeMonthCalc.incomeItems.map(item => `
+        : activeMonthCalc.incomeItems.map(item => {
+            const badgeColor = incomeColor;
+            return `
           <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
             <div class="tx-item-left">
               <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
               <div class="tx-item-meta">
-                <span class="category-badge">${escapeHtml(item.category)}</span>
+                <span class="category-badge" style="--cat-color: ${badgeColor};">${escapeHtml(item.category)}</span>
                 ${formatRecurrenceNote(item)}
               </div>
             </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="tx-amount income">+${formatCurrency(item.absAmount)}<span style="font-size:0.65rem; opacity:0.75;">/mo</span></span>
+            <div class="tx-item-right">
+              <span class="tx-amount income">+${formatCurrency(item.absAmount)}<span class="unit-mo">/mo</span></span>
               ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
             </div>
           </div>
-        `).join("");
+        `;
+          }).join("");
 
       let expenseListHtml = activeMonthCalc.expenseItems.length === 0
         ? `<div class="tx-empty-state">No planned expenses for ${monthNames[selectedBudgetMonth - 1]}.</div>`
-        : activeMonthCalc.expenseItems.map(item => `
+        : activeMonthCalc.expenseItems.map(item => {
+            const badgeColor = expenseCategoryColorMap[item.category] || "#999";
+            return `
           <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
             <div class="tx-item-left">
               <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
               <div class="tx-item-meta">
-                <span class="category-badge">${escapeHtml(item.category)}</span>
+                <span class="category-badge" style="--cat-color: ${badgeColor};">${escapeHtml(item.category)}</span>
                 ${formatRecurrenceNote(item)}
               </div>
             </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="tx-amount expense">-${formatCurrency(item.absAmount)}<span style="font-size:0.65rem; opacity:0.75;">/mo</span></span>
+            <div class="tx-item-right">
+              <span class="tx-amount expense">-${formatCurrency(item.absAmount)}<span class="unit-mo">/mo</span></span>
               ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
             </div>
           </div>
-        `).join("");
+        `;
+          }).join("");
 
       container.innerHTML = `
         <div class="month-carousel-card">
