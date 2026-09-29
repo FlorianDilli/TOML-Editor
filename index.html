@@ -2840,13 +2840,14 @@ force_https = true
       const totalIncome = activeMonthCalc.totalIncome;
       const totalExpense = activeMonthCalc.totalExpense;
       const netSavings = activeMonthCalc.netSavings;
+      const isDeficit = netSavings < 0;
 
       const isDark = document.documentElement.classList.contains("dark");
       const incomeColor = isDark ? "#4ade80" : "#16a34a";
       const deficitColor = isDark ? "#f87171" : "#dc2626";
       const surplusColor = "#b9fe67";
 
-      // 1. Prepare Left Nodes (Income Streams)
+      // 1. Prepare Left Nodes (Inflows & Funding)
       const incomeMap = {};
       incomeItems.forEach(item => {
         const name = (item.category && item.category !== "Income") ? item.category : (item.displayName || "Income");
@@ -2855,13 +2856,20 @@ force_https = true
 
       const leftNodes = [];
       Object.entries(incomeMap).forEach(([name, amount]) => {
-        leftNodes.push({ name, amount, color: incomeColor });
+        leftNodes.push({ name, amount, color: incomeColor, isDeficit: false });
       });
-      if (leftNodes.length === 0) {
-        leftNodes.push({ name: "Unspecified Income", amount: Math.max(0, totalIncome), color: incomeColor });
+      if (leftNodes.length === 0 && totalIncome > 0) {
+        leftNodes.push({ name: "Unspecified Income", amount: totalIncome, color: incomeColor, isDeficit: false });
       }
-      if (netSavings < 0) {
-        leftNodes.push({ name: "Deficit (Savings Used)", amount: Math.abs(netSavings), color: deficitColor });
+
+      // If budget is negative, fund the gap from savings/reserves with deficit styling
+      if (isDeficit) {
+        leftNodes.push({
+          name: "Deficit (Savings Used)",
+          amount: Math.abs(netSavings),
+          color: deficitColor,
+          isDeficit: true
+        });
       }
       leftNodes.sort((a, b) => b.amount - a.amount);
 
@@ -2892,17 +2900,18 @@ force_https = true
       );
       if (totalFlow <= 1 && totalIncome === 0 && totalExpense === 0) return "";
 
+      // In deficit months, center hub represents "Total Outflow" to match the expense KPI
       const middleNode = {
-        name: "Total Income",
+        name: isDeficit ? "Total Outflow" : "Total Income",
         amount: totalFlow,
-        color: incomeColor
+        color: isDeficit ? deficitColor : incomeColor
       };
 
-      // 4. Proportional Sizing & Layout Geometry with Label Collision Prevention
+      // 4. Proportional Sizing & Layout Geometry
       const svgWidth = 840;
       const padY = 32;
-      const gap = 20;              // Base gap for larger items
-      const minNodeSpacing = 32;   // Minimum distance between node centers to fit 2-line labels
+      const gap = 20;
+      const minNodeSpacing = 32;
       const nodeWidth = 10;
       const minNodeH = 6;
 
@@ -2913,7 +2922,6 @@ force_https = true
       rightNodes.forEach(n => { n.h = Math.max(minNodeH, n.amount * pxPerUnit); });
       middleNode.h = Math.max(minNodeH, totalFlow * pxPerUnit);
 
-      // Accurately compute column heights taking min label spacing into account
       function calcColumnHeight(nodes) {
         if (!nodes.length) return 0;
         let total = 0;
@@ -2934,7 +2942,6 @@ force_https = true
       const midX = 400;
       const rightX = 640;
 
-      // Position nodes with guaranteed separation for text
       function layoutColumn(nodes, xPos, colH) {
         let currY = padY + (maxColH - colH) / 2;
         nodes.forEach((n, idx) => {
@@ -2956,7 +2963,7 @@ force_https = true
       let ribbonsHtml = "";
       let gradCounter = 0;
 
-      // Stage 1: Left (Income) -> Middle (Total Income)
+      // Stage 1: Left -> Middle
       let midInConsumedY = middleNode.y;
       leftNodes.forEach((ln, i) => {
         const sliceH = (ln.amount / totalFlow) * middleNode.h;
@@ -2977,14 +2984,15 @@ force_https = true
         midInConsumedY += sliceH;
 
         const path = `M ${x0} ${y0L} C ${xMid} ${y0L}, ${xMid} ${y0R}, ${x1} ${y0R} L ${x1} ${y1R} C ${xMid} ${y1R}, ${xMid} ${y1L}, ${x0} ${y1L} Z`;
+        const ribbonSign = ln.isDeficit ? "-" : "+";
         ribbonsHtml += `
           <path class="sankey-ribbon" d="${path}" fill="url(#${gradId})" stroke="none">
-            <title>${escapeHtml(ln.name)} → Total Income: ${formatCurrency(ln.amount)}/mo</title>
+            <title>${escapeHtml(ln.name)} → ${middleNode.name}: ${ribbonSign}${formatCurrency(ln.amount)}/mo</title>
           </path>
         `;
       });
 
-      // Stage 2: Middle (Total Income) -> Right (Expenses + Surplus)
+      // Stage 2: Middle -> Right
       let midOutConsumedY = middleNode.y;
       rightNodes.forEach((rn, i) => {
         const sliceH = (rn.amount / totalFlow) * middleNode.h;
@@ -3007,7 +3015,7 @@ force_https = true
         const path = `M ${x0} ${y0L} C ${xMid} ${y0L}, ${xMid} ${y0R}, ${x1} ${y0R} L ${x1} ${y1R} C ${xMid} ${y1R}, ${xMid} ${y1L}, ${x0} ${y1L} Z`;
         ribbonsHtml += `
           <path class="sankey-ribbon" d="${path}" fill="url(#${gradId})" stroke="none">
-            <title>Total Income → ${escapeHtml(rn.name)}: ${formatCurrency(rn.amount)}/mo</title>
+            <title>${middleNode.name} → ${escapeHtml(rn.name)}: ${formatCurrency(rn.amount)}/mo</title>
           </path>
         `;
       });
@@ -3015,22 +3023,24 @@ force_https = true
       // 6. Generate Node Bars & Labels
       let nodesHtml = "";
 
-      // Inflows
+      // Inflows & Deficit
       leftNodes.forEach(n => {
+        const sign = n.isDeficit ? "-" : "+";
+        const valColor = n.isDeficit ? deficitColor : "var(--text-muted)";
         nodesHtml += `
           <g>
             <rect x="${n.x}" y="${n.y}" width="${nodeWidth}" height="${n.h}" rx="3" fill="${n.color}"></rect>
             <text x="${n.x - 8}" y="${n.y + (n.h / 2) - 6}" text-anchor="end" font-size="10.5" font-weight="700" fill="var(--text-dark)" dominant-baseline="central">${escapeHtml(n.name)}</text>
-            <text x="${n.x - 8}" y="${n.y + (n.h / 2) + 7}" text-anchor="end" font-size="9.5" font-weight="600" fill="var(--text-muted)" dominant-baseline="central">+${formatCurrency(n.amount)}</text>
+            <text x="${n.x - 8}" y="${n.y + (n.h / 2) + 7}" text-anchor="end" font-size="9.5" font-weight="700" fill="${valColor}" dominant-baseline="central">${sign}${formatCurrency(n.amount)}</text>
           </g>
         `;
       });
 
-      // Merged Center Node
+      // Center Node (Dynamically Total Income or Total Outflow)
       nodesHtml += `
         <g>
           <rect x="${middleNode.x}" y="${middleNode.y}" width="${nodeWidth}" height="${middleNode.h}" rx="3" fill="${middleNode.color}"></rect>
-          <text x="${middleNode.x + (nodeWidth / 2)}" y="${middleNode.y - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-dark)">Total Income</text>
+          <text x="${middleNode.x + (nodeWidth / 2)}" y="${middleNode.y - 12}" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-dark)">${middleNode.name}</text>
           <text x="${middleNode.x + (nodeWidth / 2)}" y="${middleNode.y + middleNode.h + 13}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text-muted)">${formatCurrency(totalFlow)}</text>
         </g>
       `;
@@ -3047,6 +3057,10 @@ force_https = true
         `;
       });
 
+      const flowSubtitle = isDeficit
+        ? "Income &amp; Deficit → Total Outflow → Expense Breakdown"
+        : "Inflow → Total Income → Outflow &amp; Surplus";
+
       return `
         <div class="sankey-card">
           <div class="sankey-header">
@@ -3054,7 +3068,7 @@ force_https = true
               <i data-lucide="split" style="width:13px;height:13px;color:var(--primary-lime-border);"></i>
               Cashflow Sankey (${monthName} ${year})
             </span>
-            <span style="font-size:0.7rem; color:var(--text-light-muted);">Inflow → Total Income → Outflow & Budget</span>
+            <span style="font-size:0.7rem; color:var(--text-light-muted);">${flowSubtitle}</span>
           </div>
           <div class="sankey-svg-wrap">
             <svg class="sankey-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMid meet">
