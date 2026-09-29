@@ -1133,6 +1133,33 @@
       flex-direction: column;
     }
 
+    /* Category-grouped transaction list */
+    .tx-category-group {
+      border-bottom: 1px solid var(--border-light);
+    }
+    .tx-category-group:last-child {
+      border-bottom: none;
+    }
+    .tx-category-header {
+      padding: 6px 12px;
+      background: var(--bg-surface-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .tx-category-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tx-category-sum {
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
     /* --- Refined Transaction Row & Category Styling --- */
     .tx-item {
       padding: 9px 12px;
@@ -1663,6 +1690,12 @@
             </div>
 
             <div class="budget-controls-right">
+              <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Sort:</span>
+              <select id="budgetSortSelect" class="budget-year-select" onchange="handleSortChange(this.value)">
+                <option value="amount">Amount</option>
+                <option value="category">Category</option>
+              </select>
+
               <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Currency:</span>
               <select id="budgetCurrencySelect" class="budget-year-select" onchange="handleCurrencyChange(this.value)">
                 <option value="$">$ (USD)</option>
@@ -2442,6 +2475,8 @@ force_https = true
     let isDarkMode = localStorage.getItem("moonli_dark_mode") === "true";
     let isLineWrap = localStorage.getItem("moonli_toml_wrap") !== "false";
     let budgetCurrency = localStorage.getItem("moonli_budget_currency") || "€";
+    let budgetSortBy = localStorage.getItem("moonli_budget_sort") || "amount";
+    const budgetSortSelect = document.getElementById("budgetSortSelect");
     let selectedBudgetYear = new Date().getFullYear();
     let selectedBudgetMonth = new Date().getMonth() + 1;
     let parsedTomlData = { root: {}, sections: [], keyCount: 0 };
@@ -2456,6 +2491,7 @@ force_https = true
     const wrapToggleBtn = document.getElementById("wrapToggleBtn");
     const budgetTabDot = document.getElementById("budgetTabDot");
     const budgetCurrencySelect = document.getElementById("budgetCurrencySelect");
+    const budgetSortSelect = document.getElementById("budgetSortSelect");
 
     window.addEventListener("DOMContentLoaded", () => {
       if (isDarkMode) document.documentElement.classList.add("dark");
@@ -2467,6 +2503,7 @@ force_https = true
       updateWrapButtonUI();
 
       budgetCurrencySelect.value = budgetCurrency;
+      if (budgetSortSelect) budgetSortSelect.value = budgetSortBy;
 
       // 1. Populate TOML first so parsed model is populated
       const savedDoc = localStorage.getItem("moonli_toml_content");
@@ -3084,6 +3121,77 @@ force_https = true
       };
     }
 
+    function handleSortChange(val) {
+      budgetSortBy = val;
+      localStorage.setItem("moonli_budget_sort", val);
+      renderBudgetDashboard();
+    }
+
+    function renderTxItemHtml(item, badgeColor) {
+      const isExpense = item.isExpense;
+      const sign = isExpense ? "-" : "+";
+      const cls = isExpense ? "expense" : "income";
+      return `
+        <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
+          <div class="tx-item-left">
+            <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
+            <div class="tx-item-meta">
+              <span class="category-badge" style="--cat-color: ${badgeColor};">${escapeHtml(item.category)}</span>
+              ${formatRecurrenceNote(item)}
+            </div>
+          </div>
+          <div class="tx-item-right">
+            <span class="tx-amount ${cls}">${sign}${formatCurrency(item.absAmount)}<span class="unit-mo">/mo</span></span>
+            ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTransactionListHtml(items, isExpense, emptyMsg, incomeColor, expenseCategoryColorMap) {
+      if (!items || items.length === 0) {
+        return `<div class="tx-empty-state">${emptyMsg}</div>`;
+      }
+
+      if (budgetSortBy === "category") {
+        const groups = {};
+        items.forEach(item => {
+          const cat = item.category || "General";
+          if (!groups[cat]) groups[cat] = { total: 0, items: [] };
+          groups[cat].total += item.absAmount;
+          groups[cat].items.push(item);
+        });
+
+        const sortedCats = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+
+        return sortedCats.map(cat => {
+          const grp = groups[cat];
+          grp.items.sort((a, b) => b.absAmount - a.absAmount);
+          const badgeColor = isExpense ? (expenseCategoryColorMap[cat] || "#999") : incomeColor;
+          const sign = isExpense ? "-" : "+";
+
+          return `
+            <div class="tx-category-group">
+              <div class="tx-category-header">
+                <span class="tx-category-name">
+                  <span class="category-badge" style="--cat-color: ${badgeColor};">${escapeHtml(cat)}</span>
+                  <span>(${grp.items.length})</span>
+                </span>
+                <span class="tx-category-sum">${sign}${formatCurrency(grp.total)}/mo</span>
+              </div>
+              ${grp.items.map(item => renderTxItemHtml(item, badgeColor)).join("")}
+            </div>
+          `;
+        }).join("");
+      }
+
+      items.sort((a, b) => b.absAmount - a.absAmount);
+      return items.map(item => {
+        const badgeColor = isExpense ? (expenseCategoryColorMap[item.category] || "#999") : incomeColor;
+        return renderTxItemHtml(item, badgeColor);
+      }).join("");
+    }
+
     function renderBudgetDashboard() {
       const container = document.getElementById("budgetScrollContainer");
       const root = parsedTomlData.root || {};
@@ -3158,47 +3266,24 @@ force_https = true
       const incomeColor = isDark ? "#4ade80" : "#16a34a";
       const expenseCategoryColorMap = getSankeyCategoryColorMap(activeMonthCalc.expenseItems, isDark);
 
-      let incomeListHtml = activeMonthCalc.incomeItems.length === 0
-        ? `<div class="tx-empty-state">No planned income for ${monthNames[selectedBudgetMonth - 1]}.</div>`
-        : activeMonthCalc.incomeItems.map(item => {
-            const badgeColor = incomeColor;
-            return `
-          <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
-            <div class="tx-item-left">
-              <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
-              <div class="tx-item-meta">
-                <span class="category-badge" style="--cat-color: ${badgeColor};">${escapeHtml(item.category)}</span>
-                ${formatRecurrenceNote(item)}
-              </div>
-            </div>
-            <div class="tx-item-right">
-              <span class="tx-amount income">+${formatCurrency(item.absAmount)}<span class="unit-mo">/mo</span></span>
-              ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
-            </div>
-          </div>
-        `;
-          }).join("");
+      const emptyIncomeMsg = `No planned income for ${monthNames[selectedBudgetMonth - 1]}.`;
+      const emptyExpenseMsg = `No planned expenses for ${monthNames[selectedBudgetMonth - 1]}.`;
 
-      let expenseListHtml = activeMonthCalc.expenseItems.length === 0
-        ? `<div class="tx-empty-state">No planned expenses for ${monthNames[selectedBudgetMonth - 1]}.</div>`
-        : activeMonthCalc.expenseItems.map(item => {
-            const badgeColor = expenseCategoryColorMap[item.category] || "#999";
-            return `
-          <div class="tx-item" onclick="jumpToLine(${item.line})" title="${escapeHtml(item.description)}">
-            <div class="tx-item-left">
-              <span class="tx-item-title">${escapeHtml(item.displayName)}</span>
-              <div class="tx-item-meta">
-                <span class="category-badge" style="--cat-color: ${badgeColor};">${escapeHtml(item.category)}</span>
-                ${formatRecurrenceNote(item)}
-              </div>
-            </div>
-            <div class="tx-item-right">
-              <span class="tx-amount expense">-${formatCurrency(item.absAmount)}<span class="unit-mo">/mo</span></span>
-              ${item.line ? `<button class="line-jump-pill" title="Jump to line ${item.line}">L${item.line}</button>` : ''}
-            </div>
-          </div>
-        `;
-          }).join("");
+      const incomeListHtml = renderTransactionListHtml(
+        [...activeMonthCalc.incomeItems],
+        false,
+        emptyIncomeMsg,
+        incomeColor,
+        expenseCategoryColorMap
+      );
+
+      const expenseListHtml = renderTransactionListHtml(
+        [...activeMonthCalc.expenseItems],
+        true,
+        emptyExpenseMsg,
+        incomeColor,
+        expenseCategoryColorMap
+      );
 
       container.innerHTML = `
         <div class="month-carousel-card">
