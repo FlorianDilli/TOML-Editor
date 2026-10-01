@@ -164,11 +164,11 @@
       height: var(--header-height);
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-light);
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
       gap: 8px;
+      padding: 0 10px;
       z-index: 100;
       flex-shrink: 0;
       overflow-x: clip; /* Cleanly clip without causing page scrollbars */
@@ -182,18 +182,16 @@
     }
 
     .header-left {
-      flex: 0 1 auto;
+      justify-self: start;
       gap: 6px;
     }
 
     .header-center {
-      flex: 0 0 auto;
-      justify-content: center;
+      justify-self: center;
     }
 
     .header-right {
-      flex: 0 1 auto;
-      justify-content: flex-end;
+      justify-self: end;
       gap: 5px;
       white-space: nowrap;
     }
@@ -271,17 +269,6 @@
         display: none !important;
       }
 
-      .status-badge span {
-        display: none !important;
-      }
-      .status-badge {
-        padding: 4px;
-        border-radius: 50%;
-        min-width: 20px;
-        height: 20px;
-        justify-content: center;
-      }
-
       .filename-pill {
         max-width: 110px;
       }
@@ -294,7 +281,7 @@
       }
 
       .app-header {
-        padding: 0 6px;
+        padding: 0 10px;
         gap: 4px;
       }
 
@@ -325,19 +312,8 @@
       }
 
       .filename-pill {
-        max-width: 120px;
+        max-width: 76px;
         padding: 2px 6px;
-      }
-
-      .status-badge {
-        padding: 3px;
-        border-radius: 50%;
-        min-width: 18px;
-        height: 18px;
-        justify-content: center;
-      }
-      .status-badge span {
-        display: none !important;
       }
 
       .tab-group {
@@ -357,6 +333,31 @@
       }
       .status-bar-right > span {
         display: none !important; /* Hide "© 2026 moonli" */
+      }
+
+      /* Keep filename pill compact so header tabs aren't squished */
+      .filename-pill {
+        max-width: 78px;
+        padding: 2px 6px;
+      }
+
+      /* Full-width 3-column grid filling 100% of the screen */
+      .budget-toolbar {
+        display: grid !important;
+        grid-template-columns: 1fr 1.25fr 1fr;
+        gap: 8px;
+        padding: 8px 14px; /* Matches the 14px padding of cards below */
+      }
+
+      .budget-control {
+        width: 100%;
+      }
+
+      .budget-year-select {
+        width: 100%;
+        height: 34px;
+        font-size: 0.75rem;
+        padding: 0 4px;
       }
     }
 
@@ -472,30 +473,6 @@
       background: var(--bg-surface);
     }
 
-
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
-      font-size: 0.7rem;
-      font-weight: 700;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .status-badge.valid {
-      background-color: var(--primary-lime);
-      color: var(--primary-lime-text);
-    }
-
-    .status-badge.invalid {
-      background-color: var(--danger-light);
-      color: var(--danger);
-    }
-
     .tab-group {
       display: inline-flex;
       align-items: center;
@@ -506,16 +483,7 @@
     }
 
     .key-hint {
-      font-size: 0.65rem;
-      font-family: var(--font-mono);
-      background: rgba(0, 0, 0, 0.05);
-      padding: 1px 4px;
-      border-radius: 4px;
-      color: var(--text-muted);
-    }
-
-    .dark .key-hint {
-      background: rgba(255, 255, 255, 0.08);
+      display: none !important;
     }
 
     /* Buttons & Icons */
@@ -776,27 +744,41 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       flex-shrink: 0;
     }
 
-    .budget-controls-left, .budget-controls-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* Desktop behavior: Year on left, Sort + Currency on right */
+    @media (min-width: 621px) {
+      .budget-toolbar .budget-control:first-child {
+        margin-right: auto;
+      }
+      .budget-toolbar .budget-control:not(:first-child) {
+        margin-left: 6px;
+      }
+    }
+
+    .budget-control {
+      min-width: 0;
     }
 
     .budget-year-select {
       background: var(--bg-surface-subtle);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-pill);
-      padding: 3px 10px;
+      padding: 0 10px;
+      height: 34px;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--text-dark);
       cursor: pointer;
       outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      text-align-last: center;
     }
 
     .budget-scroll-body {
@@ -907,6 +889,14 @@
 
     .dark .month-chip.active .month-chip-net {
       color: var(--primary-lime-text);
+    }
+
+    .month-chip.active .month-chip-net.neg {
+      color: var(--danger);
+    }
+
+    .dark .month-chip.active .month-chip-net.neg {
+      color: #ff5252;
     }
 
     .month-kpi-grid {
@@ -1569,11 +1559,6 @@
         <i data-lucide="file-code" style="width: 13px; height: 13px; color: var(--text-muted); flex-shrink: 0;"></i>
         <input type="text" id="filenameInput" class="filename-input" value="financials.toml" spellcheck="false" placeholder="document.toml">
       </div>
-
-      <div id="statusBadge" class="status-badge valid" title="Document Validation State">
-        <i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i>
-        <span>Valid</span>
-      </div>
     </div>
 
     <!-- Center: Segmented View Controls -->
@@ -1617,19 +1602,9 @@
 
       <div class="nav-divider"></div>
 
-      <button class="btn btn-ghost" onclick="openSampleModal()" title="Load Sample Templates">
-        <i data-lucide="layers" style="width: 13px; height: 13px;"></i>
-        <span>Examples</span>
-      </button>
-
       <button class="btn btn-ghost" onclick="triggerFileUpload()" title="Open local TOML file">
         <i data-lucide="folder-open" style="width: 13px; height: 13px;"></i>
         <span>Open</span>
-      </button>
-
-      <button class="btn btn-ghost" onclick="copyTomlContent()" title="Copy TOML to clipboard">
-        <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
-        <span>Copy</span>
       </button>
 
       <button class="btn btn-lime" onclick="downloadTomlFile()" title="Download file to disk">
@@ -1652,9 +1627,12 @@
       <div class="tab-content active" id="tabEditor">
         <!-- Quick Symbol & Clear Toolbar -->
         <div class="mobile-symbols-bar" id="mobileSymbolBar">
-          <button class="symbol-chip chip-danger" onclick="clearEditorContent()" title="Select All & Delete">
-            <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Clear
-          </button>
+      <button class="symbol-chip" onclick="copyTomlContent()" title="Copy TOML to clipboard">
+        <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy
+      </button>
+      <button class="symbol-chip chip-danger" onclick="clearEditorContent()" title="Select All & Delete">
+        <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Clear
+      </button>
           <button class="symbol-chip" onclick="insertSymbol('[')">[</button>
           <button class="symbol-chip" onclick="insertSymbol(']')">]</button>
           <button class="symbol-chip" onclick="insertSymbol('[[')">[[</button>
@@ -1667,7 +1645,7 @@
           <button class="symbol-chip" onclick="insertSymbol('# ')">#</button>
           <button class="symbol-chip" onclick="insertSymbol(', ')">,</button>
           <button class="symbol-chip" onclick="insertSymbol('  ')">⇥ Tab</button>
-          <button class="symbol-chip" onclick="quickAddRecurringSnippet()">+ Recurring</button>
+
         </div>
 
         <textarea id="rawTextarea" class="raw-textarea-editor" spellcheck="false" placeholder="Write or load TOML content here..."></textarea>
@@ -1679,23 +1657,22 @@
 
           <!-- Budget Toolbar -->
           <div class="budget-toolbar">
-            <div class="budget-controls-left">
-              <span style="font-size: 0.76rem; font-weight: 800;">Year:</span>
+            <div class="budget-control">
               <select id="budgetYearSelect" class="budget-year-select" onchange="handleYearChange(this.value)"></select>
             </div>
 
-            <div class="budget-controls-right">
-              <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Sort:</span>
+            <div class="budget-control">
               <select id="budgetSortSelect" class="budget-year-select" onchange="handleSortChange(this.value)">
-                <option value="amount">Amount</option>
-                <option value="category">Category</option>
+                <option value="amount">↕ Amount</option>
+                <option value="category">↕ Category</option>
               </select>
+            </div>
 
-              <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Currency:</span>
+            <div class="budget-control">
               <select id="budgetCurrencySelect" class="budget-year-select" onchange="handleCurrencyChange(this.value)">
-                <option value="$">$ (USD)</option>
-                <option value="€">€ (EUR)</option>
-                <option value="£">£ (GBP)</option>
+                <option value="$">$ USD</option>
+                <option value="€">€ EUR</option>
+                <option value="£">£ GBP</option>
                 <option value="CHF">CHF</option>
               </select>
             </div>
@@ -1729,7 +1706,7 @@
     </div>
 
     <div class="status-bar-right">
-      <a href="<https://github.com/FlorianDilli/TOML-Editor>" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+      <a href="https://floriandilli.github.io/TOML-Editor/" target="_blank" rel="noopener noreferrer" style="color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58 0-.28 0-1.02-.02-2-3.34.73-4.04-1.42-4.04-1.42-.54-1.38-1.33-1.75-1.33-1.75-1.09-.75.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.3.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0C17 5.92 18 6.24 18 6.24c.64 1.66.24 2.88.12 3.18.77.84 1.24 1.92 1.24 3.22 0 4.6-2.8 5.63-5.48 5.92.43.37.82 1.1.82 2.22 0 1.6-.02 2.9-.02 3.3 0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
         GitHub
       </a>
@@ -2477,7 +2454,6 @@ force_https = true
     let parsedTomlData = { root: {}, sections: [], keyCount: 0 };
 
     const filenameInput = document.getElementById("filenameInput");
-    const statusBadge = document.getElementById("statusBadge");
     const statLines = document.getElementById("statLines");
     const statKeys = document.getElementById("statKeys");
     const statRecurringCount = document.getElementById("statRecurringCount");
@@ -2650,14 +2626,10 @@ force_https = true
 
       if (parsed.error) {
         currentError = parsed.error;
-        statusBadge.className = "status-badge invalid";
-        statusBadge.innerHTML = `<i data-lucide="alert-circle" style="width:12px;height:12px;"></i><span>Line ${parsed.error.line}</span>`;
         errorMessageText.textContent = `Line ${parsed.error.line}: ${parsed.error.message}`;
         errorAlertBanner.className = "error-alert-banner visible";
       } else {
         currentError = null;
-        statusBadge.className = "status-badge valid";
-        statusBadge.innerHTML = `<i data-lucide="check-circle-2" style="width:12px;height:12px;"></i><span>Valid</span>`;
         errorAlertBanner.className = "error-alert-banner";
       }
       renderIcons();
@@ -3219,6 +3191,27 @@ force_https = true
         if (y === selectedBudgetYear) opt.selected = true;
         yearSelect.appendChild(opt);
       });
+
+      if (parsedTomlData.error) {
+        container.innerHTML = `
+          <div style="background:var(--bg-surface); border:1px dashed var(--danger-border); border-radius:var(--radius-lg); padding:36px 18px; text-align:center; max-width:480px; margin:40px auto;">
+            <div style="width:44px; height:44px; border-radius:50%; background:var(--danger-light); display:inline-flex; align-items:center; justify-content:center; margin-bottom:10px; color:var(--danger-text);">
+              <i data-lucide="alert-circle" style="width:22px; height:22px;"></i>
+            </div>
+            <h3 style="font-size:1.05rem; font-weight:800; margin-bottom:6px; color:var(--danger-text);">TOML Parse Error</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.45; margin-bottom:16px;">
+              Line ${parsedTomlData.error.line}: ${escapeHtml(parsedTomlData.error.message)}<br>
+              Fix the syntax error to inspect your budget.
+            </p>
+            <button class="btn btn-lime" onclick="jumpToErrorLine()">
+              <i data-lucide="arrow-down-left" style="width:13px; height:13px;"></i>
+              <span>Jump to Error</span>
+            </button>
+          </div>
+        `;
+        renderIcons();
+        return;
+      }
 
       if (recurring.length === 0) {
         container.innerHTML = `
