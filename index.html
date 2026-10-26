@@ -3142,7 +3142,7 @@ force_https = true
           groups[cat].items.push(item);
         });
 
-        const sortedCats = Object.keys(groups).sort((a, b) => a.localeCompare(b));
+        const sortedCats = Object.keys(groups).sort((a, b) => groups[b].total - groups[a].total);
 
         return sortedCats.map(cat => {
           const grp = groups[cat];
