@@ -1586,7 +1586,7 @@
     <!-- Right: Utility Tools, File Actions, Theme Switcher -->
     <div class="header-right">
       <div class="tools-group">
-        <button class="btn btn-ghost btn-icon-only active" id="wrapToggleBtn" onclick="toggleLineWrap()" title="Toggle Line Wrap">
+        <button class="btn btn-ghost btn-icon-only" id="wrapToggleBtn" onclick="toggleLineWrap()" title="Toggle Line Wrap">
           <i data-lucide="wrap-text" style="width: 13px; height: 13px;"></i>
         </button>
         <button class="btn btn-ghost btn-icon-only" onclick="undoEditor()" title="Undo (Ctrl+Z)">
@@ -2445,7 +2445,7 @@ force_https = true
     let currentError = null;
     let activeTab = "split";
     let isDarkMode = localStorage.getItem("moonli_dark_mode") === "true";
-    let isLineWrap = localStorage.getItem("moonli_toml_wrap") !== "false";
+    let isLineWrap = localStorage.getItem("moonli_toml_wrap") === "true";
     let budgetCurrency = localStorage.getItem("moonli_budget_currency") || "€";
     let budgetSortBy = localStorage.getItem("moonli_budget_sort") || "amount";
     const budgetSortSelect = document.getElementById("budgetSortSelect");
