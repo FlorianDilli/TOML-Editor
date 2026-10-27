@@ -3172,6 +3172,90 @@ force_https = true
       }).join("");
     }
 
+    function renderMonthDiffCard(activeCalc, prevCalc, fullMonthNames, monthNames, month, year) {
+      if (!prevCalc) {
+        return `
+          <div class="allocation-bar-card" style="text-align:center; color:var(--text-light-muted);">
+            <span style="font-size:0.78rem; font-weight:600;">No previous month to compare.</span>
+          </div>
+        `;
+      }
+      const keyOf = (it) => (it.isExpense ? 'E' : 'I') + '|' + it.displayName + '|' + it.category;
+      const prevMap = new Map();
+      [...prevCalc.incomeItems, ...prevCalc.expenseItems].forEach(it => prevMap.set(keyOf(it), it));
+      const currMap = new Map();
+      [...activeCalc.incomeItems, ...activeCalc.expenseItems].forEach(it => currMap.set(keyOf(it), it));
+
+      const added = [], removed = [], changed = [], unchanged = [];
+      currMap.forEach((it, k) => {
+        const p = prevMap.get(k);
+        if (!p) added.push(it);
+        else if (Math.abs(p.absAmount - it.absAmount) > 0.005) changed.push({ prev: p, curr: it });
+        else unchanged.push(it);
+      });
+      prevMap.forEach((it, k) => {
+        if (!currMap.has(k)) removed.push(it);
+      });
+
+      const netDelta = activeCalc.netSavings - prevCalc.netSavings;
+      const netSign = netDelta >= 0 ? '+' : '-';
+      const netClass = netDelta >= 0 ? 'net-pos' : 'net-neg';
+
+      const renderRow = (it, extra) => `
+        <div class="tx-item" ${it.line ? `onclick="jumpToLine(${it.line})"` : ''}>
+          <div class="tx-item-left">
+            <span class="tx-item-title">${escapeHtml(it.displayName)}</span>
+            <div class="tx-item-meta">
+              <span class="category-badge">${escapeHtml(it.category)}</span>
+            </div>
+          </div>
+          <div class="tx-item-right">
+            ${extra}
+          </div>
+        </div>
+      `;
+
+      let html = `
+        <div class="allocation-bar-card">
+          <div class="allocation-header">
+            <span>Changes vs. ${fullMonthNames[prevCalc.month - 1]} ${prevCalc.year}</span>
+            <span class="${netClass}">${netSign}${formatCurrency(Math.abs(netDelta))}</span>
+          </div>
+      `;
+
+      if (added.length) {
+        html += `<div style="font-size:0.72rem;font-weight:800;color:var(--success-text);margin-top:6px;">NEW (${added.length})</div>`;
+        added.forEach(it => {
+          const sign = it.isExpense ? '-' : '+';
+          const cls = it.isExpense ? 'expense' : 'income';
+          html += renderRow(it, `<span class="tx-amount ${cls}">${sign}${formatCurrency(it.absAmount)}</span>`);
+        });
+      }
+      if (changed.length) {
+        html += `<div style="font-size:0.72rem;font-weight:800;color:#b45309;margin-top:6px;">CHANGED (${changed.length})</div>`;
+        changed.forEach(({ prev, curr }) => {
+          const sign = curr.isExpense ? '-' : '+';
+          const cls = curr.isExpense ? 'expense' : 'income';
+          const delta = curr.absAmount - prev.absAmount;
+          const dsign = delta >= 0 ? '+' : '-';
+          html += renderRow(curr, `<span style="text-decoration:line-through;color:var(--text-light-muted);font-family:var(--font-mono);font-size:0.78rem;">${formatCurrency(prev.absAmount)}</span> <span class="tx-amount ${cls}">${sign}${formatCurrency(curr.absAmount)}</span> <span style="font-family:var(--font-mono);font-size:0.72rem;color:#b45309;">(${dsign}${formatCurrency(Math.abs(delta))})</span>`);
+        });
+      }
+      if (removed.length) {
+        html += `<div style="font-size:0.72rem;font-weight:800;color:var(--danger-text);margin-top:6px;">REMOVED (${removed.length})</div>`;
+        removed.forEach(it => {
+          const sign = it.isExpense ? '-' : '+';
+          const cls = it.isExpense ? 'expense' : 'income';
+          html += renderRow(it, `<span class="tx-amount ${cls}" style="opacity:0.5;text-decoration:line-through;">${sign}${formatCurrency(it.absAmount)}</span>`);
+        });
+      }
+      if (unchanged.length) {
+        html += `<div style="font-size:0.72rem;font-weight:700;color:var(--text-light-muted);margin-top:6px;">UNCHANGED (${unchanged.length})</div>`;
+      }
+      html += `</div>`;
+      return html;
+    }
+
     function renderBudgetDashboard() {
       const container = document.getElementById("budgetScrollContainer");
       const root = parsedTomlData.root || {};
@@ -3258,6 +3342,11 @@ force_https = true
         `;
       });
 
+      const prevMonthNum = selectedBudgetMonth === 1 ? 12 : selectedBudgetMonth - 1;
+      const prevYearNum = selectedBudgetMonth === 1 ? selectedBudgetYear - 1 : selectedBudgetYear;
+      const hasPrev = availableYears.includes(prevYearNum);
+      const prevMonthCalc = hasPrev ? calculateMonthBudget(root, prevYearNum, prevMonthNum) : null;
+
       const isNetPos = activeMonthCalc.netSavings >= 0;
       const totalTurnover = activeMonthCalc.totalIncome > 0 ? activeMonthCalc.totalIncome : (activeMonthCalc.totalExpense || 1);
       const expensePct = Math.min(100, Math.round((activeMonthCalc.totalExpense / totalTurnover) * 100));
@@ -3322,6 +3411,8 @@ force_https = true
             <span class="kpi-sub">of income</span>
           </div>
         </div>
+
+        ${renderMonthDiffCard(activeMonthCalc, prevMonthCalc, fullMonthNames, monthNames, selectedBudgetMonth, selectedBudgetYear)}
 
         <div class="allocation-bar-card">
           <div class="allocation-header">
