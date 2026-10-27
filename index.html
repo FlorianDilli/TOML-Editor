@@ -304,6 +304,10 @@
         display: none !important;
       }
 
+      #darkModeToggle {
+        display: none !important;
+      }
+
       /* Hide auxiliary buttons */
       button[onclick="openSampleModal()"],
       button[onclick="copyTomlContent()"],
@@ -597,6 +601,12 @@
       color: var(--text-dark);
       cursor: pointer;
       flex-shrink: 0;
+    }
+
+    .symbol-chip.copy-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .symbol-chip:active {
@@ -1634,8 +1644,8 @@
       <button class="symbol-chip chip-danger" onclick="clearEditorContent()" title="Select All & Delete">
         <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Clear
       </button>
-      <button class="symbol-chip" onclick="copyTomlContent()" title="Copy full TOML to clipboard">
-        <i data-lucide="copy" style="width: 12px; height: 12px;"></i> Copy TOML
+      <button class="symbol-chip copy-chip" onclick="copyTomlContent()" title="Copy to clipboard">
+        <i data-lucide="copy" style="width: 16px; height: 16px;"></i> Copy
       </button>
           <button class="symbol-chip" onclick="insertSymbol('[')">[</button>
           <button class="symbol-chip" onclick="insertSymbol(']')">]</button>
@@ -2448,7 +2458,11 @@ force_https = true
     let cmEditor = null;
     let currentError = null;
     let activeTab = "split";
-    let isDarkMode = localStorage.getItem("moonli_dark_mode") === "true";
+    const mobileViewport = window.matchMedia("(max-width: 620px)");
+    const systemColorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    let isDarkMode = mobileViewport.matches
+      ? systemColorScheme.matches
+      : localStorage.getItem("moonli_dark_mode") === "true";
     let isLineWrap = localStorage.getItem("moonli_toml_wrap") === "true";
     let budgetCurrency = localStorage.getItem("moonli_budget_currency") || "€";
     let budgetSortBy = localStorage.getItem("moonli_budget_sort") || "amount";
@@ -2568,13 +2582,32 @@ force_https = true
     }
 
     function toggleDarkMode() {
+      if (mobileViewport.matches) return;
       isDarkMode = !isDarkMode;
       localStorage.setItem("moonli_dark_mode", isDarkMode);
+      applyDarkMode();
+    }
+
+    function applyDarkMode() {
       document.documentElement.classList.toggle("dark", isDarkMode);
       updateDarkModeIcon();
       if (cmEditor) cmEditor.refresh();
       if (activeTab === "budget" || activeTab === "split") renderBudgetDashboard();
     }
+
+    function syncDarkModeWithEnvironment() {
+      const nextDarkMode = mobileViewport.matches
+        ? systemColorScheme.matches
+        : localStorage.getItem("moonli_dark_mode") === "true";
+      if (nextDarkMode === isDarkMode) return;
+      isDarkMode = nextDarkMode;
+      applyDarkMode();
+    }
+
+    mobileViewport.addEventListener("change", syncDarkModeWithEnvironment);
+    systemColorScheme.addEventListener("change", () => {
+      if (mobileViewport.matches) syncDarkModeWithEnvironment();
+    });
 
     function getEditorValue() {
       return cmEditor ? cmEditor.getValue() : document.getElementById("rawTextarea").value;
