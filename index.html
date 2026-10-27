@@ -978,7 +978,7 @@
       color: var(--text-light-muted);
     }
 
-    .allocation-bar-card {
+    .month-diff-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
@@ -990,32 +990,29 @@
       flex-shrink: 0;
     }
 
-    .allocation-header {
+    .month-diff-card > summary {
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 0.74rem;
       font-weight: 700;
       color: var(--text-muted);
+      cursor: pointer;
+      list-style: none;
     }
 
-    .allocation-progress {
-      height: 8px;
-      border-radius: var(--radius-pill);
-      background: var(--card-gray);
-      overflow: hidden;
-      display: flex;
-      width: 100%;
+    .month-diff-card > summary::-webkit-details-marker {
+      display: none;
     }
 
-    .alloc-segment.expense {
-      background: #ff7875;
-      height: 100%;
+    .month-diff-card > summary::after {
+      content: "+";
+      margin-left: 8px;
+      color: var(--text-light-muted);
     }
 
-    .alloc-segment.savings {
-      background: #52c41a;
-      height: 100%;
+    .month-diff-card[open] > summary::after {
+      content: "-";
     }
 
     .sankey-card {
@@ -3209,12 +3206,16 @@ force_https = true
       }).join("");
     }
 
-    function renderMonthDiffCard(activeCalc, prevCalc, fullMonthNames, monthNames, month, year) {
+    function renderMonthDiffCard(activeCalc, prevCalc, fullMonthNames, month, year) {
+      const prevMonth = month === 1 ? 12 : month - 1;
+      const prevYear = month === 1 ? year - 1 : year;
+      const title = `Changes vs. ${fullMonthNames[prevMonth - 1]} ${prevYear}`;
       if (!prevCalc) {
         return `
-          <div class="allocation-bar-card" style="text-align:center; color:var(--text-light-muted);">
-            <span style="font-size:0.78rem; font-weight:600;">No previous month to compare.</span>
-          </div>
+          <details class="month-diff-card">
+            <summary>${title}</summary>
+            <span style="text-align:center; color:var(--text-light-muted); font-size:0.78rem; font-weight:600;">No previous month to compare.</span>
+          </details>
         `;
       }
       const keyOf = (it) => (it.isExpense ? 'E' : 'I') + '|' + it.displayName + '|' + it.category;
@@ -3253,11 +3254,11 @@ force_https = true
       `;
 
       let html = `
-        <div class="allocation-bar-card">
-          <div class="allocation-header">
-            <span>Changes vs. ${fullMonthNames[prevCalc.month - 1]} ${prevCalc.year}</span>
+        <details class="month-diff-card">
+          <summary>
+            <span>${title}</span>
             <span class="${netClass}">${netSign}${formatCurrency(Math.abs(netDelta))}</span>
-          </div>
+          </summary>
       `;
 
       if (added.length) {
@@ -3289,7 +3290,7 @@ force_https = true
       if (unchanged.length) {
         html += `<div style="font-size:0.72rem;font-weight:700;color:var(--text-light-muted);margin-top:6px;">UNCHANGED (${unchanged.length})</div>`;
       }
-      html += `</div>`;
+      html += `</details>`;
       return html;
     }
 
@@ -3385,10 +3386,6 @@ force_https = true
       const prevMonthCalc = hasPrev ? calculateMonthBudget(root, prevYearNum, prevMonthNum) : null;
 
       const isNetPos = activeMonthCalc.netSavings >= 0;
-      const totalTurnover = activeMonthCalc.totalIncome > 0 ? activeMonthCalc.totalIncome : (activeMonthCalc.totalExpense || 1);
-      const expensePct = Math.min(100, Math.round((activeMonthCalc.totalExpense / totalTurnover) * 100));
-      const savingsPct = Math.max(0, 100 - expensePct);
-
       const isDark = document.documentElement.classList.contains("dark");
       const incomeColor = isDark ? "#4ade80" : "#16a34a";
       const expenseCategoryColorMap = getSankeyCategoryColorMap(activeMonthCalc.expenseItems, isDark);
@@ -3449,20 +3446,9 @@ force_https = true
           </div>
         </div>
 
-        ${renderMonthDiffCard(activeMonthCalc, prevMonthCalc, fullMonthNames, monthNames, selectedBudgetMonth, selectedBudgetYear)}
-
-        <div class="allocation-bar-card">
-          <div class="allocation-header">
-            <span>Allocation (${fullMonthNames[selectedBudgetMonth - 1]} ${selectedBudgetYear})</span>
-            <span>Expenses: ${expensePct}% • Savings: ${savingsPct}%</span>
-          </div>
-          <div class="allocation-progress">
-            <div class="alloc-segment expense" style="width: ${expensePct}%;"></div>
-            <div class="alloc-segment savings" style="width: ${savingsPct}%;"></div>
-          </div>
-        </div>
-
         ${renderSankeyFlow(activeMonthCalc, fullMonthNames[selectedBudgetMonth - 1], selectedBudgetYear)}
+
+        ${renderMonthDiffCard(activeMonthCalc, prevMonthCalc, fullMonthNames, selectedBudgetMonth, selectedBudgetYear)}
 
         ${activeMonthCalc.cashOnHand !== null ? `
           <div class="cash-banner-card">
